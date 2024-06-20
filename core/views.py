@@ -2,10 +2,10 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import Profile
 from .email_llama3 import generate_email, bhashini_translate,generate_bus_pro, generate_offer_letter, generate_summary, generate_content, generate_sales_script  
 from django.contrib.auth.models import User
-from django.core.mail import send_mail
 from django.utils.crypto import get_random_string
 from django.utils import timezone
 from django.conf import settings
@@ -23,6 +23,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+
+import json
+
+
 
 
 def generate_otp():
@@ -66,30 +73,6 @@ def landing(request):
 def about(request):
     return render(request, 'about.html')
 
-# @csrf_exempt
-# def signin(request):
-#     if request.method == 'POST':
-#         try:
-#             data = json.loads(request.body)
-#             email = data.get('email')
-#             password = data.get('password')
-            
-#             try:
-#                 user = User.objects.get(email=email)
-#                 username = user.username
-#             except User.DoesNotExist:
-#                 return JsonResponse({'error': 'Invalid email or password'}, status=400)
-            
-#             user = authenticate(request, username=username, password=password)
-#             if user is not None:
-#                 login(request, user)
-#                 return JsonResponse({'success': 'User authenticated'}, status=200)
-#             else:
-#                 return JsonResponse({'error': 'Invalid email or password'}, status=400)
-#         except Exception as e:
-#             return JsonResponse({'error': str(e)}, status=500)
-#     return JsonResponse({'error': 'Invalid request method'}, status=405)
-
 @csrf_exempt
 def signin(request):
     if request.method == 'POST':
@@ -97,14 +80,16 @@ def signin(request):
             data = json.loads(request.body)
             email = data.get('email')
             password = data.get('password')
+            
+            if not email or not password:
+                return JsonResponse({'error': 'Email and password are required'}, status=400)
 
             try:
                 user = User.objects.get(email=email)
-                username = user.username
             except User.DoesNotExist:
                 return JsonResponse({'error': 'Invalid email or password'}, status=400)
 
-            user = authenticate(request, username=username, password=password)
+            user = authenticate(request, username=user.username, password=password)
             if user is not None:
                 login(request, user)
                 refresh = RefreshToken.for_user(user)
@@ -115,8 +100,11 @@ def signin(request):
                 }, status=200)
             else:
                 return JsonResponse({'error': 'Invalid email or password'}, status=400)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+            # Log the exception (consider using logging framework)
+            return JsonResponse({'error': 'Internal server error'}, status=500)
     return JsonResponse({'error': 'Invalid request method'}, status=405)
         
 def reset_password(request):
@@ -168,37 +156,6 @@ def email_generator(request):
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
-
-
-
-# @csrf_exempt
-# @login_required
-# def email_generator(request):
-#     if request.method == 'POST':
-#         try:
-#             purpose = request.POST.get('purpose')
-#             if purpose == 'others':
-#                 purpose = request.POST.get('purpose_other')
-#             num_words = request.POST.get('num_words')
-#             subject = request.POST.get('subject')
-#             rephrase = 'rephrase' in request.POST
-#             to = request.POST.get('to')
-#             tone = request.POST.get('tone')
-#             keywords = [request.POST.get(f'keyword_{i}') for i in range(1, 9)]
-#             contextual_background = request.POST.get('contextual_background')
-#             call_to_action = request.POST.get('call_to_action')
-#             if call_to_action == 'others':
-#                 call_to_action = request.POST.get('call_to_action_other')
-#             additional_details = request.POST.get('additional_details')
-#             priority_level = request.POST.get('priority_level')
-#             closing_remarks = request.POST.get('closing_remarks')
-
-#             generated_content = generate_email(purpose, num_words, subject, rephrase, to, tone, keywords, contextual_background, call_to_action, additional_details, priority_level, closing_remarks)
-#             return render(request, 'generated_content.html', {'generated_content': generated_content})
-#         except Exception as e:
-#             return render(request, 'generated_content.html', {'error': e})
-
-#     return render(request, 'email_generator.html')
 
 @csrf_exempt
 @login_required
@@ -485,58 +442,118 @@ def content_generator(request):
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
 
+# @csrf_exempt
+# def sales_script_generator(request):
+#     if request.method == 'POST':
+#         try:
+#             # Load JSON data from request body
+#             data = json.loads(request.body)
+
+#             # Extract data from JSON
+#             num_words = data.get('num_words')
+#             company_details = data.get('company_details')
+#             product_descriptions = data.get('product_descriptions')
+#             features_benefits = data.get('features_benefits')
+#             pricing_info = data.get('pricing_info')
+#             promotions = data.get('promotions')
+#             target_audience = data.get('target_audience')
+#             sales_objectives = data.get('sales_objectives')
+#             tone_style = data.get('tone_style')
+#             competitive_advantage = data.get('competitive_advantage')
+#             testimonials = data.get('testimonials')
+#             compliance = data.get('compliance')
+#             tech_integration = data.get('tech_integration')
+
+#             # Call the generate_sales_script function
+#             sales_script = generate_sales_script(
+#                 company_details,
+#                 num_words,
+#                 product_descriptions,
+#                 features_benefits,
+#                 pricing_info,
+#                 promotions,
+#                 target_audience,
+#                 sales_objectives,
+#                 tone_style,
+#                 competitive_advantage,
+#                 testimonials,
+#                 compliance,
+#                 tech_integration
+#             )
+
+#             if sales_script:
+#                 # Return JSON response with generated content
+#                 return JsonResponse({'generated_content': sales_script})
+
+#             # Handle case where script generation failed
+#             messages.error(request, 'Failed to generate sales script. Please try again.')
+#             return JsonResponse({'error': 'Failed to generate sales script. Please try again.'}, status=500)
+
+#         except json.JSONDecodeError as e:
+#             # Handle JSON decode error
+#             messages.error(request, 'Invalid JSON format. Please provide valid JSON data.')
+#             return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
+
+#     # Handle GET request or any other method
+#     return JsonResponse({'error': 'Method not allowed.'}, status=405)
+
+
+
+
 @csrf_exempt
-@login_required
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def sales_script_generator(request):
-    if request.method == 'POST':
-        try:
-            # Load JSON data from request body
-            data = json.loads(request.body)
+    try:
+        # Load JSON data from request body
+        data = json.loads(request.body)
 
-            # Extract data from JSON
-            num_words = data.get('num_words')
-            company_details = data.get('company_details')
-            product_descriptions = data.get('product_descriptions')
-            features_benefits = data.get('features_benefits')
-            pricing_info = data.get('pricing_info')
-            promotions = data.get('promotions')
-            target_audience = data.get('target_audience')
-            sales_objectives = data.get('sales_objectives')
-            tone_style = data.get('tone_style')
-            competitive_advantage = data.get('competitive_advantage')
-            testimonials = data.get('testimonials')
-            compliance = data.get('compliance')
-            tech_integration = data.get('tech_integration')
+        # Extract data from JSON
+        num_words = data.get('num_words')
+        company_details = data.get('company_details')
+        product_descriptions = data.get('product_descriptions')
+        features_benefits = data.get('features_benefits')
+        pricing_info = data.get('pricing_info')
+        promotions = data.get('promotions')
+        target_audience = data.get('target_audience')
+        sales_objectives = data.get('sales_objectives')
+        tone_style = data.get('tone_style')
+        competitive_advantage = data.get('competitive_advantage')
+        testimonials = data.get('testimonials')
+        compliance = data.get('compliance')
+        tech_integration = data.get('tech_integration')
 
-            # Call the generate_sales_script function
-            sales_script = generate_sales_script(
-                company_details,
-                num_words,
-                product_descriptions,
-                features_benefits,
-                pricing_info,
-                promotions,
-                target_audience,
-                sales_objectives,
-                tone_style,
-                competitive_advantage,
-                testimonials,
-                compliance,
-                tech_integration
-            )
+        # Call the generate_sales_script function
+        sales_script = generate_sales_script(
+            company_details,
+            num_words,
+            product_descriptions,
+            features_benefits,
+            pricing_info,
+            promotions,
+            target_audience,
+            sales_objectives,
+            tone_style,
+            competitive_advantage,
+            testimonials,
+            compliance,
+            tech_integration
+        )
 
-            if sales_script:
-                # Return JSON response with generated content
-                return JsonResponse({'generated_content': sales_script})
+        if sales_script:
+            # Return JSON response with generated content
+            return JsonResponse({'generated_content': sales_script})
 
-            # Handle case where script generation failed
-            messages.error(request, 'Failed to generate sales script. Please try again.')
-            return JsonResponse({'error': 'Failed to generate sales script. Please try again.'}, status=500)
+        # Handle case where script generation failed
+        return JsonResponse({'error': 'Failed to generate sales script. Please try again.'}, status=500)
 
-        except json.JSONDecodeError as e:
-            # Handle JSON decode error
-            messages.error(request, 'Invalid JSON format. Please provide valid JSON data.')
-            return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
+    except json.JSONDecodeError:
+        # Handle JSON decode error
+        return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
+
+    except Exception as e:
+        # Handle any other exceptions
+        return JsonResponse({'error': str(e)}, status=500)
 
     # Handle GET request or any other method
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
