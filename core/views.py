@@ -201,36 +201,38 @@ def email_generator(request):
 
 
 @csrf_exempt
-@login_required
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def translate_content(request):
     translated_content = None
     error = None
     language = ""
 
     if request.method == 'POST':
-        generated_content = request.POST.get('generated_content')
-        print(generated_content)
-        language = request.POST.get('language')
-        print(language)
-        response = bhashini_translate(generated_content, language)
-        if response["status_code"] == 200:
-            translated_content = response["translated_content"]
-            return render(request, 'generated_content.html', {
-                'generated_content': generated_content,
-                'translated_content': translated_content,
-                'selected_language': language
-            })
-        else:
-            error = response #"Translation failed:" 
-    else:
-        error = "Form Submission Failed"  # Debugging
-    return render(request, 'generated_content.html', {
-                'generated_content': generated_content,
-                'translated_content': translated_content,
-                'selected_language': language,
-                'error': error,
-            })
+        try:
+            data = request.data  # Assuming request body is in JSON format
+            generated_content = data.get('generated_content')
+            language = data.get('language')
 
+            if not generated_content or not language:
+                return JsonResponse({'error': 'Both generated_content and language are required fields.'}, status=400)
+
+            response = bhashini_translate(generated_content, language)
+
+            if response["status_code"] == 200:
+                translated_content = response["translated_content"]
+                return JsonResponse({
+                    'generated_content': generated_content,
+                    'translated_content': translated_content,
+                    'selected_language': language
+                }, status=200)
+            else:
+                return JsonResponse({'error': 'Translation failed.'}, status=500)
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
 
 @csrf_exempt
@@ -310,10 +312,12 @@ def business_proposal_generator(request):
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
 @csrf_exempt
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def offer_letter_generator(request):
     if request.method == 'POST':
         try:
-            data = json.loads(request.body.decode('utf-8'))
+            data = json.loads(request.body)
             company_details = data.get('companyDetails')
             num_words = data.get('numberOfWords')
             candidate_name = data.get('candidateFullName')
@@ -333,19 +337,22 @@ def offer_letter_generator(request):
             documents_needed = data.get('documentsNeeded')
             closing_remarks = data.get('closingRemarks')
 
+            # Assuming generate_offer_letter is a function that processes the offer letter data
             offer_letter_content = generate_offer_letter(
                 company_details, num_words, candidate_name, position_title, department, supervisor, status,
                 location, start_date, compensation, benefits, work_hours, duration,
                 terms, acceptance_deadline, contact_info, documents_needed, closing_remarks
             )
 
-            return JsonResponse({'generated_content': offer_letter_content})
+            return JsonResponse({'generated_content': offer_letter_content}, status=200)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
 
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
-    return JsonResponse({'error': 'Invalid request method'}, status=400)
-
+    return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
 @login_required
 def generated_content(request):
