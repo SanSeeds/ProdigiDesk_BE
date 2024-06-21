@@ -121,40 +121,83 @@ def reset_password(request):
 def dashboard(request):
     return render(request, 'dashboard.html')
 
+# @csrf_exempt
+# @login_required
+# def email_generator(request):
+#     if request.method == 'POST':
+#         try:
+#             data = json.loads(request.body)
+#             purpose = data.get('purpose')
+#             if purpose == 'others':
+#                 purpose = data.get('purpose_other')
+#             num_words = data.get('num_words')
+#             subject = data.get('subject')
+#             rephrase = data.get('rephrase', False)
+#             to = data.get('to')
+#             tone = data.get('tone')
+#             keywords = [data.get(f'keyword_{i}') for i in range(1, 9)]
+#             contextual_background = data.get('contextual_background')
+#             call_to_action = data.get('call_to_action')
+#             if call_to_action == 'others':
+#                 call_to_action = data.get('call_to_action_other')
+#             additional_details = data.get('additional_details')
+#             priority_level = data.get('priority_level')
+#             closing_remarks = data.get('closing_remarks')
+
+#             generated_content = generate_email(
+#                 purpose, num_words, subject, rephrase, to, tone, keywords,
+#                 contextual_background, call_to_action, additional_details,
+#                 priority_level, closing_remarks
+#             )
+
+#             return JsonResponse({'generated_content': generated_content}, status=200)
+#         except Exception as e:
+#             return JsonResponse({'error': str(e)}, status=500)
+
+#     return JsonResponse({'error': 'Invalid request method'}, status=400)
+
 @csrf_exempt
-@login_required
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def email_generator(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            purpose = data.get('purpose')
-            if purpose == 'others':
-                purpose = data.get('purpose_other')
-            num_words = data.get('num_words')
-            subject = data.get('subject')
-            rephrase = data.get('rephrase', False)
-            to = data.get('to')
-            tone = data.get('tone')
-            keywords = [data.get(f'keyword_{i}') for i in range(1, 9)]
-            contextual_background = data.get('contextual_background')
-            call_to_action = data.get('call_to_action')
-            if call_to_action == 'others':
-                call_to_action = data.get('call_to_action_other')
-            additional_details = data.get('additional_details')
-            priority_level = data.get('priority_level')
-            closing_remarks = data.get('closing_remarks')
+    try:
+        data = json.loads(request.body)
+        purpose = data.get('purpose')
+        if purpose == 'others':
+            purpose = data.get('purpose_other')
+        num_words = data.get('num_words')
+        subject = data.get('subject')
+        rephrase = data.get('rephrase', False)
+        to = data.get('to')
+        tone = data.get('tone')
+        keywords = [data.get(f'keyword_{i}') for i in range(1, 9)]
+        contextual_background = data.get('contextual_background')
+        call_to_action = data.get('call_to_action')
+        if call_to_action == 'others':
+            call_to_action = data.get('call_to_action_other')
+        additional_details = data.get('additional_details')
+        priority_level = data.get('priority_level')
+        closing_remarks = data.get('closing_remarks')
 
-            generated_content = generate_email(
-                purpose, num_words, subject, rephrase, to, tone, keywords,
-                contextual_background, call_to_action, additional_details,
-                priority_level, closing_remarks
-            )
+        generated_content = generate_email(
+            purpose, num_words, subject, rephrase, to, tone, keywords,
+            contextual_background, call_to_action, additional_details,
+            priority_level, closing_remarks
+        )
 
+        if generated_content:
             return JsonResponse({'generated_content': generated_content}, status=200)
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
 
-    return JsonResponse({'error': 'Invalid request method'}, status=400)
+        return JsonResponse({'error': 'Failed to generate email. Please try again.'}, status=500)
+
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Method not allowed.'}, status=405)
+
+
 
 
 @csrf_exempt
@@ -228,7 +271,8 @@ def translate(request):
 
 
 @csrf_exempt
-@login_required
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def business_proposal_generator(request):
     if request.method == 'POST':
         try:
@@ -247,6 +291,7 @@ def business_proposal_generator(request):
             benefits = data.get('benefits')
             closing_remarks = data.get('closing_remarks')
 
+            # Assuming generate_bus_pro is a function that processes the proposal data
             proposal_content = generate_bus_pro(
                 business_intro, proposal_objective, num_words, scope_of_work,
                 project_phases, expected_outcomes, innovative_approaches,
@@ -255,10 +300,14 @@ def business_proposal_generator(request):
             )
 
             return JsonResponse({'generated_content': proposal_content}, status=200)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
+
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
-    return JsonResponse({'error': 'Invalid request method'}, status=400)
+    return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
 @csrf_exempt
 def offer_letter_generator(request):
@@ -401,10 +450,13 @@ def summarize_document(request):
     # Handle GET requests (if needed)
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
+
+
 @csrf_exempt
-@login_required
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def content_generator(request):
-    if request.method == 'POST':
+    try:
         # Parse JSON data from the request body
         data = json.loads(request.body.decode('utf-8'))
 
@@ -418,7 +470,7 @@ def content_generator(request):
         num_words = data.get('num_words')
         seo_keywords = data.get('seo_keywords')
         references = data.get('references')
-        
+
         # Call the generate_content function
         content = generate_content(
             company_info,
@@ -432,74 +484,24 @@ def content_generator(request):
             seo_keywords,
             references
         )
-        
+
         if content:
             return JsonResponse({'generated_content': content})
-        else:
-            return JsonResponse({'error': 'Failed to generate content. Please try again.'}, status=400)
 
-    # Handle GET requests or other HTTP methods
+        return JsonResponse({'error': 'Failed to generate content. Please try again.'}, status=500)
+
+    except json.JSONDecodeError:
+        # Handle JSON decode error
+        return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
+
+    except Exception as e:
+        # Handle any other exceptions
+        return JsonResponse({'error': str(e)}, status=500)
+
+    # Handle GET request or any other method
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
-
-# @csrf_exempt
-# def sales_script_generator(request):
-#     if request.method == 'POST':
-#         try:
-#             # Load JSON data from request body
-#             data = json.loads(request.body)
-
-#             # Extract data from JSON
-#             num_words = data.get('num_words')
-#             company_details = data.get('company_details')
-#             product_descriptions = data.get('product_descriptions')
-#             features_benefits = data.get('features_benefits')
-#             pricing_info = data.get('pricing_info')
-#             promotions = data.get('promotions')
-#             target_audience = data.get('target_audience')
-#             sales_objectives = data.get('sales_objectives')
-#             tone_style = data.get('tone_style')
-#             competitive_advantage = data.get('competitive_advantage')
-#             testimonials = data.get('testimonials')
-#             compliance = data.get('compliance')
-#             tech_integration = data.get('tech_integration')
-
-#             # Call the generate_sales_script function
-#             sales_script = generate_sales_script(
-#                 company_details,
-#                 num_words,
-#                 product_descriptions,
-#                 features_benefits,
-#                 pricing_info,
-#                 promotions,
-#                 target_audience,
-#                 sales_objectives,
-#                 tone_style,
-#                 competitive_advantage,
-#                 testimonials,
-#                 compliance,
-#                 tech_integration
-#             )
-
-#             if sales_script:
-#                 # Return JSON response with generated content
-#                 return JsonResponse({'generated_content': sales_script})
-
-#             # Handle case where script generation failed
-#             messages.error(request, 'Failed to generate sales script. Please try again.')
-#             return JsonResponse({'error': 'Failed to generate sales script. Please try again.'}, status=500)
-
-#         except json.JSONDecodeError as e:
-#             # Handle JSON decode error
-#             messages.error(request, 'Invalid JSON format. Please provide valid JSON data.')
-#             return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
-
-#     # Handle GET request or any other method
-#     return JsonResponse({'error': 'Method not allowed.'}, status=405)
-
-
-
-
+   
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
