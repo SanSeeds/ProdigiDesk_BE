@@ -25,17 +25,26 @@ SECRET_KEY = 'django-insecure-)$dd0d(!-&&9!p(b_1prn+fn!g3)ln*$lzzai%trbk%8cyr9uh
 DEBUG = True
 
 
+# ALLOWED_HOSTS = []
+# #AUTH_USER_MODEL = 'core.Profile'
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.office365.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'abhinavsaxena1509@outlook.com'
+# EMAIL_HOST_PASSWORD = 'G5djr$@1'
+# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
 ALLOWED_HOSTS = []
 #AUTH_USER_MODEL = 'core.Profile'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.office365.com'
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'abhinavsaxena1509@outlook.com'
-EMAIL_HOST_PASSWORD = 'G5djr$@1'
+EMAIL_HOST_USER = 'abhinav150601@gmail.com'
+EMAIL_HOST_PASSWORD = 'wgem yqjr upvf mhhi'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
-
 
 
 

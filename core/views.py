@@ -1,3 +1,4 @@
+import random
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -31,9 +32,50 @@ import json
 
 
 
-
 def generate_otp():
-    return get_random_string(length=6, allowed_chars='0123456789')
+    return ''.join(random.choices('0123456789', k=6))
+
+@csrf_exempt
+def send_otp(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        email = data.get('email')
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'Email does not exist'}, status=404)
+
+        # Generate OTP
+        otp = generate_otp()
+        expiry_time = timezone.now() + timedelta(minutes=10)
+
+        # Store OTP and expiry time in the database
+        PasswordResetRequest.objects.update_or_create(
+            user=user,
+            defaults={
+                'otp': otp,
+                'expiry_time': expiry_time
+            }
+        )
+
+        # Send OTP via email
+        subject = 'Password Reset OTP'
+        message = f'Your OTP for password reset is {otp}. This OTP is valid only for 10 minutes.'
+        from_email = settings.DEFAULT_FROM_EMAIL
+        recipient_list = [email]
+
+        try:
+            send_mail(subject, message, from_email, recipient_list, fail_silently=False)
+        except Exception as e:
+            # Log the error for further analysis
+            print(f"Error sending email: {str(e)}")
+            return JsonResponse({'error': f'Error sending email: {str(e)}'}, status=500)
+
+        return JsonResponse({'success': 'OTP sent successfully'}, status=200)
+
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
+
 
 @csrf_exempt
 @api_view(['POST'])
@@ -107,16 +149,52 @@ def signin(request):
             # Log the exception (consider using logging framework)
             return JsonResponse({'error': 'Internal server error'}, status=500)
     return JsonResponse({'error': 'Invalid request method'}, status=405)
-        
+
+@csrf_exempt
 def reset_password(request):
     if request.method == 'POST':
-        email = request.POST['email']
-        otp = request.POST['otp']
-        new_password = request.POST['new_password']
-        confirm_password = request.POST['confirm_password']
-        # handle reset password logic
-        return redirect('signin')
-    return render(request, 'reset_password.html')
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        email = data.get('email')
+        otp = data.get('otp')
+        new_password = data.get('new_password')
+        confirm_password = data.get('confirm_password')
+
+        if not all([email, otp, new_password, confirm_password]):
+            return JsonResponse({'error': 'All fields are required'}, status=400)
+
+        # Check if passwords match
+        if new_password != confirm_password:
+            return JsonResponse({'error': 'Passwords do not match'}, status=400)
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'User with this email does not exist'}, status=404)
+
+        try:
+            password_reset_request = PasswordResetRequest.objects.get(user=user, otp=otp)
+        except PasswordResetRequest.DoesNotExist:
+            return JsonResponse({'error': 'Invalid OTP'}, status=400)
+
+        # Check if the OTP has expired
+        if password_reset_request.expiry_time < timezone.now():
+            return JsonResponse({'error': 'OTP has expired'}, status=400)
+
+        # Update the user's password
+        user.set_password(new_password)
+        user.save()
+
+        # Optionally delete the password reset request after successful reset
+        password_reset_request.delete()
+
+        return JsonResponse({'success': 'Password reset successfully'}, status=200)
+
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
+
 
 @login_required
 def dashboard(request):
