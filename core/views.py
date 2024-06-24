@@ -35,37 +35,38 @@ import json
 def generate_otp():
     return get_random_string(length=6, allowed_chars='0123456789')
 
+@csrf_exempt
+@api_view(['POST'])
 def forgot_password(request):
-    if request.method == 'POST':
-        email = request.POST['email']
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
-            return render(request, 'forgot_password.html', {'error': 'Email does not exist'})
+    data = json.loads(request.body)
+    email = data.get('email')
 
-        # Generate OTP
-        otp = generate_otp()
-        expiry_time = timezone.now() + timedelta(minutes=10)
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'Email does not exist'}, status=404)
 
-        # Store OTP and expiry time in the database
-        PasswordResetRequest.objects.create(user=user, otp=otp, expiry_time=expiry_time)
+    # Generate OTP
+    otp = generate_otp()
+    expiry_time = timezone.now() + timedelta(minutes=10)
 
-        # Send OTP via email
-        subject = 'Password Reset OTP'
-        message = f'Your OTP for password reset is {otp}. This OTP is valid only for 10 minutes.'
-        from_email = settings.DEFAULT_FROM_EMAIL
-        recipient_list = [email]
+    # Store OTP and expiry time in the database
+    PasswordResetRequest.objects.create(user=user, otp=otp, expiry_time=expiry_time)
 
-        try:
-            send_mail(subject, message, from_email, recipient_list, fail_silently=False)
-        except BadHeaderError:
-            return render(request, 'forgot_password.html', {'error': 'Invalid header found.'})
-        except Exception as e:
-            return render(request, 'forgot_password.html', {'error': f'Error sending email: {str(e)}'})
+    # Send OTP via email
+    subject = 'Password Reset OTP'
+    message = f'Your OTP for password reset is {otp}. This OTP is valid only for 10 minutes.'
+    from_email = settings.DEFAULT_FROM_EMAIL
+    recipient_list = [email]
 
-        return redirect('reset_password')
+    try:
+        send_mail(subject, message, from_email, recipient_list, fail_silently=False)
+    except BadHeaderError:
+        return JsonResponse({'error': 'Invalid header found.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': f'Error sending email: {str(e)}'}, status=500)
 
-    return render(request, 'forgot_password.html')
+    return JsonResponse({'success': 'OTP sent successfully'}, status=200)
 
 def landing(request):
     return render(request, 'landing.html')
@@ -120,41 +121,6 @@ def reset_password(request):
 @login_required
 def dashboard(request):
     return render(request, 'dashboard.html')
-
-# @csrf_exempt
-# @login_required
-# def email_generator(request):
-#     if request.method == 'POST':
-#         try:
-#             data = json.loads(request.body)
-#             purpose = data.get('purpose')
-#             if purpose == 'others':
-#                 purpose = data.get('purpose_other')
-#             num_words = data.get('num_words')
-#             subject = data.get('subject')
-#             rephrase = data.get('rephrase', False)
-#             to = data.get('to')
-#             tone = data.get('tone')
-#             keywords = [data.get(f'keyword_{i}') for i in range(1, 9)]
-#             contextual_background = data.get('contextual_background')
-#             call_to_action = data.get('call_to_action')
-#             if call_to_action == 'others':
-#                 call_to_action = data.get('call_to_action_other')
-#             additional_details = data.get('additional_details')
-#             priority_level = data.get('priority_level')
-#             closing_remarks = data.get('closing_remarks')
-
-#             generated_content = generate_email(
-#                 purpose, num_words, subject, rephrase, to, tone, keywords,
-#                 contextual_background, call_to_action, additional_details,
-#                 priority_level, closing_remarks
-#             )
-
-#             return JsonResponse({'generated_content': generated_content}, status=200)
-#         except Exception as e:
-#             return JsonResponse({'error': str(e)}, status=500)
-
-#     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 @csrf_exempt
 @api_view(['POST'])
@@ -358,10 +324,10 @@ def offer_letter_generator(request):
 def generated_content(request):
     return render(request, 'generated_content.html')
 
-@login_required
-def logout_view(request):
-    logout(request)
-    return redirect('signin')
+# @login_required
+# def logout_view(request):
+#     logout(request)
+#     return redirect('signin')
 
 
 @login_required
@@ -508,7 +474,6 @@ def content_generator(request):
     # Handle GET request or any other method
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
-   
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -566,3 +531,10 @@ def sales_script_generator(request):
 
     # Handle GET request or any other method
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def logout_view(request):
+    logout(request)
+    return JsonResponse({'success': 'Logged out successfully'}, status=200)
