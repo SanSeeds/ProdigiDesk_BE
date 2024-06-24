@@ -152,6 +152,14 @@ def email_generator(request):
         )
 
         if generated_content:
+            # Send the email
+            send_mail(
+                subject,
+                generated_content,
+                settings.DEFAULT_FROM_EMAIL,
+                [to],
+                fail_silently=False,
+            )
             return JsonResponse({'generated_content': generated_content}, status=200)
 
         return JsonResponse({'error': 'Failed to generate email. Please try again.'}, status=500)
@@ -162,8 +170,6 @@ def email_generator(request):
         return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
-
-
 
 
 @csrf_exempt
