@@ -27,7 +27,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-
+from django.contrib.auth.password_validation import validate_password
+from rest_framework.decorators import api_view, permission_classes  
 import json
 
 
@@ -115,6 +116,7 @@ def landing(request):
 
 def about(request):
     return render(request, 'about.html')
+
 
 @csrf_exempt
 def signin(request):
@@ -408,11 +410,6 @@ def offer_letter_generator(request):
 def generated_content(request):
     return render(request, 'generated_content.html')
 
-# @login_required
-# def logout_view(request):
-#     logout(request)
-#     return redirect('signin')
-
 
 @login_required
 def profile(request):
@@ -469,21 +466,28 @@ def change_password(request):
 
     return redirect('profile')
 
+
+
 @csrf_exempt
-@login_required
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def summarize_document(request):
-    if request.method == 'POST':
-        document_context = request.POST.get('document_context')
-        main_subject = request.POST.get('main_subject')
-        summary_purpose = request.POST.get('summary_purpose')
-        length_detail = request.POST.get('length_detail')
-        important_elements = request.POST.get('important_elements')
-        audience = request.POST.get('audience')
-        tone = request.POST.get('tone')
-        format = request.POST.get('format')
-        additional_instructions = request.POST.get('additional_instructions')
+    try:
+        # Load data from request body
+        data = request.POST
         document = request.FILES.get('document')
-        
+
+        # Extract data from the request
+        document_context = data.get('document_context')
+        main_subject = data.get('main_subject')
+        summary_purpose = data.get('summary_purpose')
+        length_detail = data.get('length_detail')
+        important_elements = data.get('important_elements')
+        audience = data.get('audience')
+        tone = data.get('tone')
+        format = data.get('format')
+        additional_instructions = data.get('additional_instructions')
+
         # Call the generate_summary function
         summary_content = generate_summary(
             document_context,
@@ -497,16 +501,20 @@ def summarize_document(request):
             additional_instructions,
             document
         )
-        
+
         if summary_content:
             # Return JSON response with generated content
             return JsonResponse({'generated_content': summary_content})
-        else:
-            return JsonResponse({'error': 'Failed to generate summary. Please try again.'}, status=400)
-    
-    # Handle GET requests (if needed)
-    return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
+        # Handle case where summary generation failed
+        return JsonResponse({'error': 'Failed to generate summary. Please try again.'}, status=500)
+
+    except Exception as e:
+        # Handle any exceptions
+        return JsonResponse({'error': str(e)}, status=500)
+
+    # Handle GET request or any other method
+    return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
 
 @csrf_exempt
@@ -615,6 +623,7 @@ def sales_script_generator(request):
 
     # Handle GET request or any other method
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
+
 
 
 @api_view(['POST'])
