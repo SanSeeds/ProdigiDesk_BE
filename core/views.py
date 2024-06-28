@@ -27,10 +27,81 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth.password_validation import validate_password
-from rest_framework.decorators import api_view, permission_classes  
+from django.contrib.auth.password_validation import validate_password  
 import json
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+import base64
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.models import User
 
+from django.core.exceptions import ValidationError
+from rest_framework import status
+
+AES_IV = "3Ja/t8D1XYR1wtPBiybzZQ=="
+AES_SECRET_KEY = "HOykfyW56Uesby8PTgxtSA=="
+
+# Convert string keys to bytes
+AES_SECRET_KEY = bytes(AES_SECRET_KEY, 'utf-8')
+AES_IV = bytes(AES_IV, 'utf-8')
+
+
+
+
+def encrypt_data(data):
+    plaintext = json.dumps(data)
+    padded_plaintext = pad(plaintext.encode(), 16)
+    cipher = AES.new(AES_SECRET_KEY, AES.MODE_CBC, AES_IV)
+    ciphertext = cipher.encrypt(padded_plaintext)
+    ciphertext_b64 = base64.b64encode(ciphertext).decode()
+    return ciphertext_b64
+
+def decrypt_data(encrypted_data):
+    enc = base64.b64decode(encrypted_data)
+    cipher = AES.new(AES_SECRET_KEY, AES.MODE_CBC, AES_IV)
+    try:
+        decrypted_data = unpad(cipher.decrypt(enc), 16)
+        return json.loads(decrypted_data)
+    except Exception as e:
+        raise ValueError(f"Decryption failed: {e}")
+
+@csrf_exempt
+def add_user(request):
+    try:
+        data = json.loads(request.body)
+
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
+        confirm_password = data.get('confirm_password')
+
+        if not username or not email or not password or not confirm_password:
+            return JsonResponse({'error': 'All fields are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if password != confirm_password:
+            return JsonResponse({'error': 'Passwords do not match.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            return JsonResponse({'error': list(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({'error': 'Username is already taken.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(email=email).exists():
+            return JsonResponse({'error': 'Email is already registered.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.create_user(username=username, email=email, password=password)
+        user.save()
+
+        return JsonResponse({'success': 'User created successfully.'}, status=status.HTTP_201_CREATED)
+
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON format.'}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 def generate_otp():
@@ -566,6 +637,59 @@ def content_generator(request):
     # Handle GET request or any other method
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
+
+# @csrf_exempt
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def content_generator(request):
+#     try:
+#         encrypted_data = json.loads(request.body.decode('utf-8')).get('encrypted_data')
+#         if not encrypted_data:
+#             return JsonResponse({'error': 'No encrypted data provided.'}, status=400)
+
+#         decrypted_data = decrypt_data(encrypted_data)
+
+#         company_info = decrypted_data.get('companyInfo')
+#         content_purpose = decrypted_data.get('purpose')
+#         desired_action = decrypted_data.get('action')
+#         topic_details = decrypted_data.get('topicDetails')
+#         keywords = decrypted_data.get('keywords')
+#         audience_profile = decrypted_data.get('audienceProfile')
+#         format_structure = decrypted_data.get('format')
+#         num_words = decrypted_data.get('numberOfWords')
+#         seo_keywords = decrypted_data.get('seoKeywords')
+#         references = decrypted_data.get('references')
+
+#         # Call the generate_content function
+#         content = generate_content(
+#             company_info,
+#             content_purpose,
+#             desired_action,
+#             topic_details,
+#             keywords,
+#             audience_profile,
+#             format_structure,
+#             num_words,
+#             seo_keywords,
+#             references
+#         )
+
+#         if content:
+#             encrypted_content = encrypt_data(content)
+#             return JsonResponse({'encrypted_content': encrypted_content})
+
+#         return JsonResponse({'error': 'Failed to generate content. Please try again.'}, status=500)
+
+#     except json.JSONDecodeError:
+#         return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
+
+#     except ValueError as ve:
+#         return JsonResponse({'error': str(ve)}, status=400)
+
+#     except Exception as e:
+#         return JsonResponse({'error': str(e)}, status=500)
+    
+
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -631,3 +755,4 @@ def sales_script_generator(request):
 def logout_view(request):
     logout(request)
     return JsonResponse({'success': 'Logged out successfully'}, status=200)
+
