@@ -438,7 +438,14 @@ def translate(request):
 def business_proposal_generator(request):
     if request.method == 'POST':
         try:
-            data = json.loads(request.body)
+            # Extract and decrypt the incoming payload
+            encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
+            if not encrypted_content:
+                return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
+
+            decrypted_content = decrypt_data(encrypted_content)
+            data = json.loads(decrypted_content)
+
             business_intro = data.get('business_intro')
             proposal_objective = data.get('proposal_objective')
             num_words = data.get('num_words')
@@ -468,11 +475,16 @@ def business_proposal_generator(request):
 
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
-
+        except ValueError as e:
+            return JsonResponse({'error': str(e)}, status=400)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
+
+
+
+
 
 @csrf_exempt
 @api_view(['POST'])
@@ -751,6 +763,7 @@ def sales_script_generator(request):
         return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
+
 
 
 @api_view(['POST'])
