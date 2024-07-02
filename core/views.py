@@ -40,11 +40,20 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, renderer_classes
 from rest_framework.renderers import BaseRenderer
 from rest_framework.renderers import JSONRenderer
-
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
 
 # Base64-encoded AES IV and Secret Key
 AES_IV_b64 = "KRP1pDpqmy2eJos035bxdg=="
 AES_SECRET_KEY_b64 = "HOykfyW56Uesby8PTgxtSA=="
+ENCRYPTION_IV_b64 = "3G1Nd0j0l5BdPmJh01NrYg=="
+ENCRYPTION_SECRET_KEY_b64 = "XGp3hFq56Vdse3sLTtXyQQ=="
+
+# Decode Base64 strings to bytes
+AES_IV = base64.b64decode(AES_IV_b64)
+AES_SECRET_KEY = base64.b64decode(AES_SECRET_KEY_b64)
+ENCRYPTION_IV = base64.b64decode(ENCRYPTION_IV_b64)
+ENCRYPTION_SECRET_KEY = base64.b64decode(ENCRYPTION_SECRET_KEY_b64)
 
 # Decode Base64 strings to bytes
 AES_IV = base64.b64decode(AES_IV_b64)
@@ -75,19 +84,20 @@ class CustomAesRenderer(BaseRenderer):
 def encrypt_data(data):
     plaintext = json.dumps(data)
     padded_plaintext = pad(plaintext.encode(), 16)
-    cipher = AES.new(AES_SECRET_KEY, AES.MODE_CBC, AES_IV)
+    cipher = AES.new(ENCRYPTION_SECRET_KEY, AES.MODE_CBC, ENCRYPTION_IV)
     ciphertext = cipher.encrypt(padded_plaintext)
     ciphertext_b64 = base64.b64encode(ciphertext).decode()
     return ciphertext_b64
 
 def decrypt_data(encrypted_data):
-    enc = base64.b64decode(encrypted_data)
-    cipher = AES.new(AES_SECRET_KEY, AES.MODE_CBC, AES_IV)
     try:
-        decrypted_data = unpad(cipher.decrypt(enc), 16)
-        return json.loads(decrypted_data)
+        encrypted_data_bytes = base64.b64decode(encrypted_data)
+        cipher = AES.new(ENCRYPTION_SECRET_KEY, AES.MODE_CBC, ENCRYPTION_IV)
+        decrypted_data = unpad(cipher.decrypt(encrypted_data_bytes), 16)
+        return decrypted_data.decode('utf-8')
     except Exception as e:
-        raise ValueError(f"Decryption failed: {e}")
+        raise ValueError(f"Decryption error: {e}")
+
 
 @csrf_exempt
 def add_user(request):
@@ -509,8 +519,7 @@ def offer_letter_generator(request):
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
-
-
+ 
 @login_required
 def generated_content(request):
     return render(request, 'generated_content.html')
@@ -572,64 +581,18 @@ def change_password(request):
     return redirect('profile')
 
 
-
-# @csrf_exempt
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# def summarize_document(request):
-#     try:
-#         # Load data from request body
-#         data = request.POST
-#         document = request.FILES.get('document')
-
-#         # Extract data from the request
-#         document_context = data.get('document_context')
-#         main_subject = data.get('main_subject')
-#         summary_purpose = data.get('summary_purpose')
-#         length_detail = data.get('length_detail')
-#         important_elements = data.get('important_elements')
-#         audience = data.get('audience')
-#         tone = data.get('tone')
-#         format = data.get('format')
-#         additional_instructions = data.get('additional_instructions')
-
-#         # Call the generate_summary function
-#         summary_content = generate_summary(
-#             document_context,
-#             main_subject,
-#             summary_purpose,
-#             length_detail,
-#             important_elements,
-#             audience,
-#             tone,
-#             format,
-#             additional_instructions,
-#             document
-#         )
-
-#         if summary_content:
-#             # Return JSON response with generated content
-#             return JsonResponse({'generated_content': summary_content})
-
-#         # Handle case where summary generation failed
-#         return JsonResponse({'error': 'Failed to generate summary. Please try again.'}, status=500)
-
-#     except Exception as e:
-#         # Handle any exceptions
-#         return JsonResponse({'error': str(e)}, status=500)
-
-#     # Handle GET request or any other method
-#     return JsonResponse({'error': 'Method not allowed.'}, status=405)
-
-
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def summarize_document(request):
     try:
-        # Load data from request body
-        data = request.POST
-        document = request.FILES.get('document')
+        # Extract and decrypt the incoming payload
+        encrypted_content = request.POST.get('encrypted_content')
+        if not encrypted_content:
+            return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
+
+        decrypted_content = decrypt_data(encrypted_content)
+        data = json.loads(decrypted_content)
 
         # Extract data from the request
         document_context = data.get('document_context')
@@ -641,6 +604,7 @@ def summarize_document(request):
         tone = data.get('tone')
         format = data.get('format')
         additional_instructions = data.get('additional_instructions')
+        document = request.FILES.get('document')
 
         # Call the generate_summary function
         summary_content = generate_summary(
@@ -673,63 +637,18 @@ def summarize_document(request):
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
 
-# @csrf_exempt
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# def content_generator(request):
-#     try:
-#         # Parse JSON data from the request body
-#         data = json.loads(request.body.decode('utf-8'))
-
-#         company_info = data.get('company_info')
-#         content_purpose = data.get('content_purpose')
-#         desired_action = data.get('desired_action')
-#         topic_details = data.get('topic_details')
-#         keywords = data.get('keywords')
-#         audience_profile = data.get('audience_profile')
-#         format_structure = data.get('format_structure')
-#         num_words = data.get('num_words')
-#         seo_keywords = data.get('seo_keywords')
-#         references = data.get('references')
-
-#         # Call the generate_content function
-#         content = generate_content(
-#             company_info,
-#             content_purpose,
-#             desired_action,
-#             topic_details,
-#             keywords,
-#             audience_profile,
-#             format_structure,
-#             num_words,
-#             seo_keywords,
-#             references
-#         )
-
-#         if content:
-#             return JsonResponse({'generated_content': content})
-
-#         return JsonResponse({'error': 'Failed to generate content. Please try again.'}, status=500)
-
-#     except json.JSONDecodeError:
-#         # Handle JSON decode error
-#         return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
-
-#     except Exception as e:
-#         # Handle any other exceptions
-#         return JsonResponse({'error': str(e)}, status=500)
-
-#     # Handle GET request or any other method
-#     return JsonResponse({'error': 'Method not allowed.'}, status=405)
-
-
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def content_generator(request):
     try:
-        # Parse JSON data from the request body
-        data = json.loads(request.body.decode('utf-8'))
+        # Extract and decrypt the incoming payload
+        encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
+        if not encrypted_content:
+            return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
+
+        decrypted_content = decrypt_data(encrypted_content)
+        data = json.loads(decrypted_content)
 
         company_info = data.get('company_info')
         content_purpose = data.get('content_purpose')
@@ -758,194 +677,81 @@ def content_generator(request):
 
         if content:
             # Encrypt the response content
-            encrypted_content = encrypt_data({'generated_content': content})
-            return JsonResponse({'encrypted_content': encrypted_content}, status=200)
+            encrypted_response_content = encrypt_data({'generated_content': content})
+            return JsonResponse({'encrypted_content': encrypted_response_content}, status=200)
 
         return JsonResponse({'error': 'Failed to generate content. Please try again.'}, status=500)
 
     except json.JSONDecodeError:
-        # Handle JSON decode error
         return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
-
+    except ValueError as e:
+        return JsonResponse({'error': str(e)}, status=400)
     except Exception as e:
-        # Handle any other exceptions
         return JsonResponse({'error': str(e)}, status=500)
 
-    # Handle GET request or any other method
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
-
-
-# @csrf_exempt
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# def content_generator(request):
-#     try:
-#         encrypted_data = json.loads(request.body.decode('utf-8')).get('encrypted_data')
-#         if not encrypted_data:
-#             return JsonResponse({'error': 'No encrypted data provided.'}, status=400)
-
-#         decrypted_data = decrypt_data(encrypted_data)
-
-#         company_info = decrypted_data.get('companyInfo')
-#         content_purpose = decrypted_data.get('purpose')
-#         desired_action = decrypted_data.get('action')
-#         topic_details = decrypted_data.get('topicDetails')
-#         keywords = decrypted_data.get('keywords')
-#         audience_profile = decrypted_data.get('audienceProfile')
-#         format_structure = decrypted_data.get('format')
-#         num_words = decrypted_data.get('numberOfWords')
-#         seo_keywords = decrypted_data.get('seoKeywords')
-#         references = decrypted_data.get('references')
-
-#         # Call the generate_content function
-#         content = generate_content(
-#             company_info,
-#             content_purpose,
-#             desired_action,
-#             topic_details,
-#             keywords,
-#             audience_profile,
-#             format_structure,
-#             num_words,
-#             seo_keywords,
-#             references
-#         )
-
-#         if content:
-#             encrypted_content = encrypt_data(content)
-#             return JsonResponse({'encrypted_content': encrypted_content})
-
-#         return JsonResponse({'error': 'Failed to generate content. Please try again.'}, status=500)
-
-#     except json.JSONDecodeError:
-#         return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
-
-#     except ValueError as ve:
-#         return JsonResponse({'error': str(ve)}, status=400)
-
-#     except Exception as e:
-#         return JsonResponse({'error': str(e)}, status=500)
-    
-
-# @csrf_exempt
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# def sales_script_generator(request):
-#     try:
-#         # Load JSON data from request body
-#         data = json.loads(request.body)
-
-#         # Extract data from JSON
-#         num_words = data.get('num_words')
-#         company_details = data.get('company_details')
-#         product_descriptions = data.get('product_descriptions')
-#         features_benefits = data.get('features_benefits')
-#         pricing_info = data.get('pricing_info')
-#         promotions = data.get('promotions')
-#         target_audience = data.get('target_audience')
-#         sales_objectives = data.get('sales_objectives')
-#         tone_style = data.get('tone_style')
-#         competitive_advantage = data.get('competitive_advantage')
-#         testimonials = data.get('testimonials')
-#         compliance = data.get('compliance')
-#         tech_integration = data.get('tech_integration')
-
-#         # Call the generate_sales_script function
-#         sales_script = generate_sales_script(
-#             company_details,
-#             num_words,
-#             product_descriptions,
-#             features_benefits,
-#             pricing_info,
-#             promotions,
-#             target_audience,
-#             sales_objectives,
-#             tone_style,
-#             competitive_advantage,
-#             testimonials,
-#             compliance,
-#             tech_integration
-#         )
-
-#         if sales_script:
-#             # Return JSON response with generated content
-#             return JsonResponse({'generated_content': sales_script})
-
-#         # Handle case where script generation failed
-#         return JsonResponse({'error': 'Failed to generate sales script. Please try again.'}, status=500)
-
-#     except json.JSONDecodeError:
-#         # Handle JSON decode error
-#         return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
-
-#     except Exception as e:
-#         # Handle any other exceptions
-#         return JsonResponse({'error': str(e)}, status=500)
-
-#     # Handle GET request or any other method
-#     return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def sales_script_generator(request):
-    if request.method == 'POST':
-        try:
-            # Load JSON data from request body
-            data = json.loads(request.body)
+    try:
+        # Extract and decrypt the incoming payload
+        encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
+        if not encrypted_content:
+            return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
 
-            # Extract data from JSON
-            num_words = data.get('num_words')
-            company_details = data.get('company_details')
-            product_descriptions = data.get('product_descriptions')
-            features_benefits = data.get('features_benefits')
-            pricing_info = data.get('pricing_info')
-            promotions = data.get('promotions')
-            target_audience = data.get('target_audience')
-            sales_objectives = data.get('sales_objectives')
-            tone_style = data.get('tone_style')
-            competitive_advantage = data.get('competitive_advantage')
-            testimonials = data.get('testimonials')
-            compliance = data.get('compliance')
-            tech_integration = data.get('tech_integration')
+        decrypted_content = decrypt_data(encrypted_content)
+        data = json.loads(decrypted_content)
 
-            # Call the generate_sales_script function
-            sales_script = generate_sales_script(
-                company_details,
-                num_words,
-                product_descriptions,
-                features_benefits,
-                pricing_info,
-                promotions,
-                target_audience,
-                sales_objectives,
-                tone_style,
-                competitive_advantage,
-                testimonials,
-                compliance,
-                tech_integration
-            )
+        num_words = data.get('num_words')
+        company_details = data.get('company_details')
+        product_descriptions = data.get('product_descriptions')
+        features_benefits = data.get('features_benefits')
+        pricing_info = data.get('pricing_info')
+        promotions = data.get('promotions')
+        target_audience = data.get('target_audience')
+        sales_objectives = data.get('sales_objectives')
+        tone_style = data.get('tone_style')
+        competitive_advantage = data.get('competitive_advantage')
+        testimonials = data.get('testimonials')
+        compliance = data.get('compliance')
+        tech_integration = data.get('tech_integration')
 
-            if sales_script:
-                # Encrypt the response content
-                encrypted_content = encrypt_data({'generated_content': sales_script})
+        # Call the generate_sales_script function
+        sales_script = generate_sales_script(
+            company_details,
+            num_words,
+            product_descriptions,
+            features_benefits,
+            pricing_info,
+            promotions,
+            target_audience,
+            sales_objectives,
+            tone_style,
+            competitive_advantage,
+            testimonials,
+            compliance,
+            tech_integration
+        )
 
-                return JsonResponse({'encrypted_content': encrypted_content}, status=200)
+        if sales_script:
+            # Encrypt the response content
+            encrypted_content = encrypt_data({'generated_content': sales_script})
+            return JsonResponse({'encrypted_content': encrypted_content}, status=200)
 
-            # Handle case where script generation failed
-            return JsonResponse({'error': 'Failed to generate sales script. Please try again.'}, status=500)
+        return JsonResponse({'error': 'Failed to generate sales script. Please try again.'}, status=500)
 
-        except json.JSONDecodeError:
-            # Handle JSON decode error
-            return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
+    except ValueError as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
-        except Exception as e:
-            # Handle any other exceptions
-            return JsonResponse({'error': str(e)}, status=500)
-
-    # Handle GET request or any other method
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
