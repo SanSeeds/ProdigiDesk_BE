@@ -3,15 +3,15 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+import razorpay
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from .models import Profile
 from .email_llama3 import generate_email, bhashini_translate,generate_bus_pro, generate_offer_letter, generate_summary, generate_content, generate_sales_script  
 from django.contrib.auth.models import User
 from django.utils.crypto import get_random_string
 from django.utils import timezone
 from django.conf import settings
 from datetime import timedelta
-from .models import PasswordResetRequest
+from .models import PasswordResetRequest, Profile
 from django.core.mail import send_mail, BadHeaderError
 from datetime import datetime
 from django.contrib.auth import update_session_auth_hash
@@ -43,6 +43,7 @@ from rest_framework.renderers import JSONRenderer
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 
+
 # Base64-encoded AES IV and Secret Key
 AES_IV_b64 = "KRP1pDpqmy2eJos035bxdg=="
 AES_SECRET_KEY_b64 = "HOykfyW56Uesby8PTgxtSA=="
@@ -63,9 +64,6 @@ AES_SECRET_KEY = base64.b64decode(AES_SECRET_KEY_b64)
 if len(AES_IV) != 16:
     raise ValueError("AES IV must be 16 bytes long")
 
-print("AES IV:", AES_IV)
-print(len(AES_IV))
-print("AES Secret Key:", AES_SECRET_KEY)
 
 class CustomAesRenderer(BaseRenderer):
     media_type = 'application/octet-stream'
@@ -102,7 +100,9 @@ def decrypt_data(encrypted_data):
 @csrf_exempt
 def add_user(request):
     try:
+        print("Request received")
         data = json.loads(request.body)
+        print("Request body:", data)
 
         username = data.get('username')
         email = data.get('email')
@@ -110,30 +110,38 @@ def add_user(request):
         confirm_password = data.get('confirm_password')
 
         if not username or not email or not password or not confirm_password:
+            print("Missing field(s)")
             return JsonResponse({'error': 'All fields are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if password != confirm_password:
+            print("Passwords do not match")
             return JsonResponse({'error': 'Passwords do not match.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             validate_password(password)
+            print("Password validation passed")
         except ValidationError as e:
+            print("Password validation error:", e.messages)
             return JsonResponse({'error': list(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
 
         if User.objects.filter(username=username).exists():
+            print("Username is already taken")
             return JsonResponse({'error': 'Username is already taken.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if User.objects.filter(email=email).exists():
+            print("Email is already registered")
             return JsonResponse({'error': 'Email is already registered.'}, status=status.HTTP_400_BAD_REQUEST)
 
         user = User.objects.create_user(username=username, email=email, password=password)
-        user.save()
+        print("User created:", user)
 
         return JsonResponse({'success': 'User created successfully.'}, status=status.HTTP_201_CREATED)
 
     except json.JSONDecodeError:
+        print("Invalid JSON format")
         return JsonResponse({'error': 'Invalid JSON format.'}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
+        print("Unexpected error:", str(e))
         return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -306,56 +314,67 @@ def reset_password(request):
 def dashboard(request):
     return render(request, 'dashboard.html')
 
+
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def email_generator(request):
-    try:
-        data = json.loads(request.body)
-        purpose = data.get('purpose')
-        if purpose == 'others':
-            purpose = data.get('purpose_other')
-        num_words = data.get('num_words')
-        subject = data.get('subject')
-        rephrase = data.get('rephrase', False)
-        to = data.get('to')
-        tone = data.get('tone')
-        keywords = [data.get(f'keyword_{i}') for i in range(1, 9)]
-        contextual_background = data.get('contextual_background')
-        call_to_action = data.get('call_to_action')
-        if call_to_action == 'others':
-            call_to_action = data.get('call_to_action_other')
-        additional_details = data.get('additional_details')
-        priority_level = data.get('priority_level')
-        closing_remarks = data.get('closing_remarks')
+    if request.method == 'POST':
+        try:
+            # Extract and decrypt the incoming payload
+            encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
+            if not encrypted_content:
+                return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
 
-        generated_content = generate_email(
-            purpose, num_words, subject, rephrase, to, tone, keywords,
-            contextual_background, call_to_action, additional_details,
-            priority_level, closing_remarks
-        )
+            decrypted_content = decrypt_data(encrypted_content)
+            data = json.loads(decrypted_content)
 
-        if generated_content:
-            # Send the email
-            send_mail(
-                subject,
-                generated_content,
-                settings.DEFAULT_FROM_EMAIL,
-                [to],
-                fail_silently=False,
+            purpose = data.get('purpose')
+            if purpose == 'others':
+                purpose = data.get('purpose_other')
+            num_words = data.get('num_words')
+            subject = data.get('subject')
+            rephrase = data.get('rephrase', False)
+            to = data.get('to')
+            tone = data.get('tone')
+            keywords = [data.get(f'keyword_{i}') for i in range(1, 9)]
+            contextual_background = data.get('contextual_background')
+            call_to_action = data.get('call_to_action')
+            if call_to_action == 'others':
+                call_to_action = data.get('call_to_action_other')
+            additional_details = data.get('additional_details')
+            priority_level = data.get('priority_level')
+            closing_remarks = data.get('closing_remarks')
+
+            generated_content = generate_email(
+                purpose, num_words, subject, rephrase, to, tone, keywords,
+                contextual_background, call_to_action, additional_details,
+                priority_level, closing_remarks
             )
 
-            # Encrypt the response content
-            encrypted_content = encrypt_data({'generated_content': generated_content})
+            if generated_content:
+                # Send the email
+                send_mail(
+                    subject,
+                    generated_content,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [to],
+                    fail_silently=False,
+                )
 
-            return JsonResponse({'encrypted_content': encrypted_content}, status=200)
+                # Encrypt the response content
+                encrypted_response = encrypt_data({'generated_content': generated_content})
 
-        return JsonResponse({'error': 'Failed to generate email. Please try again.'}, status=500)
+                return JsonResponse({'encrypted_content': encrypted_response}, status=200)
 
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+            return JsonResponse({'error': 'Failed to generate email. Please try again.'}, status=500)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
+        except ValueError as e:
+            return JsonResponse({'error': str(e)}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
@@ -484,76 +503,100 @@ def business_proposal_generator(request):
 
 
 
-
-
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def offer_letter_generator(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            company_details = data.get('companyDetails')
-            num_words = data.get('numberOfWords')
-            candidate_name = data.get('candidateFullName')
-            position_title = data.get('positionTitle')
-            department = data.get('department')
-            supervisor = data.get('supervisor')
-            status = data.get('status')
-            location = data.get('location')
-            start_date = data.get('expectedStartDate')
-            compensation = data.get('compensationPackage')
-            benefits = data.get('benefits')
-            work_hours = data.get('workHours')
-            duration = data.get('duration')
-            terms = data.get('termsConditions')
-            acceptance_deadline = data.get('deadline')
-            contact_info = data.get('contactInfo')
-            documents_needed = data.get('documentsNeeded')
-            closing_remarks = data.get('closingRemarks')
+    try:
+        # Extract and decrypt the incoming payload
+        encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
+        if not encrypted_content:
+            return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
 
-            # Assuming generate_offer_letter is a function that processes the offer letter data
-            offer_letter_content = generate_offer_letter(
-                company_details, num_words, candidate_name, position_title, department, supervisor, status,
-                location, start_date, compensation, benefits, work_hours, duration,
-                terms, acceptance_deadline, contact_info, documents_needed, closing_remarks
-            )
+        decrypted_content = decrypt_data(encrypted_content)
+        data = json.loads(decrypted_content)
 
+        company_details = data.get('companyDetails')
+        num_words = data.get('numberOfWords')
+        candidate_name = data.get('candidateFullName')
+        position_title = data.get('positionTitle')
+        department = data.get('department')
+        supervisor = data.get('supervisor')
+        status = data.get('status')
+        location = data.get('location')
+        start_date = data.get('expectedStartDate')
+        compensation = data.get('compensationPackage')
+        benefits = data.get('benefits')
+        work_hours = data.get('workHours')
+        duration = data.get('duration')
+        terms = data.get('termsConditions')
+        acceptance_deadline = data.get('deadline')
+        contact_info = data.get('contactInfo')
+        documents_needed = data.get('documentsNeeded')
+        closing_remarks = data.get('closingRemarks')
+
+        # Assuming generate_offer_letter is a function that processes the offer letter data
+        offer_letter_content = generate_offer_letter(
+            company_details, num_words, candidate_name, position_title, department, supervisor, status,
+            location, start_date, compensation, benefits, work_hours, duration,
+            terms, acceptance_deadline, contact_info, documents_needed, closing_remarks
+        )
+
+        if offer_letter_content:
             # Encrypt the response content
             encrypted_content = encrypt_data({'generated_content': offer_letter_content})
-
             return JsonResponse({'encrypted_content': encrypted_content}, status=200)
 
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
+        return JsonResponse({'error': 'Failed to generate offer letter. Please try again.'}, status=500)
 
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
+    except ValueError as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
- 
+
+
+
 @login_required
 def generated_content(request):
     return render(request, 'generated_content.html')
 
 
-@login_required
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.dateparse import parse_date
+import json
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+@csrf_exempt
 def profile(request):
     user = request.user
     profile = Profile.objects.get(user=user)
     errors = []
 
     if request.method == 'POST':
-        user.first_name = request.POST.get('first_name')
-        user.last_name = request.POST.get('last_name')
-        profile.bio = request.POST.get('bio')
-        profile.location = request.POST.get('location')
-        
-        birth_date = request.POST.get('birth_date')
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON.'}, status=400)
+
+        # Update user and profile data based on received JSON
+        user.first_name = data.get('first_name', user.first_name)
+        user.last_name = data.get('last_name', user.last_name)
+        profile.bio = data.get('bio', profile.bio)
+        profile.location = data.get('location', profile.location)
+
+        birth_date = data.get('birth_date')
         if birth_date:
-            try:
-                profile.birth_date = datetime.strptime(birth_date, '%Y-%m-%d').date()
-            except ValueError:
+            parsed_date = parse_date(birth_date)
+            if parsed_date:
+                profile.birth_date = parsed_date
+            else:
                 errors.append("Invalid date format for birth date.")
                 profile.birth_date = None
 
@@ -565,33 +608,87 @@ def profile(request):
         if not errors:
             user.save()
             profile.save()
-            return redirect('profile')
+            return JsonResponse({'message': 'Profile updated successfully.'})
+        else:
+            return JsonResponse({'errors': errors}, status=400)
 
-    return render(request, 'profile.html', {'user': user, 'profile': profile, 'errors': errors})
+    response_data = {
+        'user': {
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+        },
+        'profile': {
+            'bio': profile.bio,
+            'location': profile.location,
+            'birth_date': profile.birth_date.isoformat() if profile.birth_date else None
+        }
+    }
 
-@login_required
+    return JsonResponse(response_data)
+
+
+
+# @login_required
+# def profile(request):
+#     user = request.user
+#     profile = Profile.objects.get(user=user)
+#     errors = []
+
+#     if request.method == 'POST':
+#         user.first_name = request.POST.get('first_name')
+#         user.last_name = request.POST.get('last_name')
+#         profile.bio = request.POST.get('bio')
+#         profile.location = request.POST.get('location')
+        
+#         birth_date = request.POST.get('birth_date')
+#         if birth_date:
+#             try:
+#                 profile.birth_date = datetime.strptime(birth_date, '%Y-%m-%d').date()
+#             except ValueError:
+#                 errors.append("Invalid date format for birth date.")
+#                 profile.birth_date = None
+
+#         if not user.first_name:
+#             errors.append("First name is required.")
+#         if not user.last_name:
+#             errors.append("Last name is required.")
+
+#         if not errors:
+#             user.save()
+#             profile.save()
+#             return redirect('profile')
+
+#     return render(request, 'profile.html', {'user': user, 'profile': profile, 'errors': errors})
+
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def change_password(request):
     if request.method == 'POST':
-        current_password = request.POST.get('current_password')
-        new_password = request.POST.get('new_password')
-        confirm_new_password = request.POST.get('confirm_new_password')
+        try:
+            data = json.loads(request.body)
+            current_password = data.get('current_password')
+            new_password = data.get('new_password')
+            confirm_new_password = data.get('confirm_new_password')
 
-        if not request.user.check_password(current_password):
-            return render(request, 'profile.html', {'user': request.user, 'profile': request.user.profile, 'errors': ['Current password is incorrect.']})
+            if not request.user.check_password(current_password):
+                return JsonResponse({'error': 'Current password is incorrect.'}, status=400)
 
-        if new_password != confirm_new_password:
-            return render(request, 'profile.html', {'user': request.user, 'profile': request.user.profile, 'errors': ['New passwords do not match.']})
+            if new_password != confirm_new_password:
+                return JsonResponse({'error': 'New passwords do not match.'}, status=400)
 
-        if new_password == current_password:
-            return render(request, 'profile.html', {'user': request.user, 'profile': request.user.profile, 'errors': ['New password cannot be the same as the current password.']})
+            if new_password == current_password:
+                return JsonResponse({'error': 'New password cannot be the same as the current password.'}, status=400)
 
-        request.user.set_password(new_password)
-        request.user.save()
-        update_session_auth_hash(request, request.user)  # Important, to keep the user logged in
-        return redirect('profile')
+            request.user.set_password(new_password)
+            request.user.save()
+            update_session_auth_hash(request, request.user)  # Important, to keep the user logged in
+            return JsonResponse({'message': 'Password changed successfully.'})
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON.'}, status=400)
 
-    return redirect('profile')
-
+    return JsonResponse({'error': 'Invalid request method.'}, status=405)
 
 @csrf_exempt
 @api_view(['POST'])
@@ -647,6 +744,7 @@ def summarize_document(request):
 
     # Handle GET request or any other method
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
+
 
 
 @csrf_exempt

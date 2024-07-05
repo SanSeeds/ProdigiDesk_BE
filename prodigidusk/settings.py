@@ -1,6 +1,6 @@
 from datetime import timedelta
+import os
 from pathlib import Path
-
 from corsheaders.defaults import default_headers
 from django.conf import settings
 
@@ -32,7 +32,7 @@ DEBUG = True
 # EMAIL_PORT = 587
 # EMAIL_USE_TLS = True
 # EMAIL_HOST_USER = 'abhinavsaxena1509@outlook.com'
-# EMAIL_HOST_PASSWORD = 'G5djr$@1'
+# EMAIL_HOST_PASSWORD = ''
 # DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 
@@ -46,7 +46,10 @@ EMAIL_HOST_USER = 'abhinav150601@gmail.com'
 EMAIL_HOST_PASSWORD = 'wgem yqjr upvf mhhi'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
+# Razorpay
 
+RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID')
+RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET')
 
 # Application definition
 
@@ -65,7 +68,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # Place it here
+    'corsheaders.middleware.CorsMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

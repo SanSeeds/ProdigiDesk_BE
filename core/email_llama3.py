@@ -45,6 +45,8 @@ def generate_email(purpose, num_words, subject, rephrase, to, tone, keywords, co
 
     # print(chat_completion.choices[0].message.content)
     return(chat_completion.choices[0].message.content)
+
+
 #text = generate_email("confirm details", "100", "Require Contact Details","Y" ,"client", "formal", "SPOC, AI, contract, project, deadline, payment", "Had a conversation with VP last week regarding an AI project on contract basis. Looking for further updates","meeting","","High","")
 def generate_bus_pro(business_intro, proposal_objective, num_words, scope_of_work, project_phases, expected_outcomes, innovative_approaches, technologies_used, target_audience,budget_info,timeline,benefits, closing_remarks):
     prompt = f"Generate an business proposal of maximum {num_words} words, given the following inputs: "
