@@ -1,10 +1,8 @@
 import random
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-import razorpay
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from .email_llama3 import generate_email, bhashini_translate,generate_bus_pro, generate_offer_letter, generate_summary, generate_content, generate_sales_script  
 from django.contrib.auth.models import User
 from django.utils.crypto import get_random_string
@@ -13,18 +11,12 @@ from django.conf import settings
 from datetime import timedelta
 from .models import PasswordResetRequest, Profile
 from django.core.mail import send_mail, BadHeaderError
-from datetime import datetime
 from django.contrib.auth import update_session_auth_hash
-from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 import json
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.views.decorators.http import require_POST
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.password_validation import validate_password  
@@ -37,12 +29,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes, renderer_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.renderers import BaseRenderer
-from rest_framework.renderers import JSONRenderer
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.backends import default_backend
 
+from django.utils.dateparse import parse_date
 
 # Base64-encoded AES IV and Secret Key
 AES_IV_b64 = "KRP1pDpqmy2eJos035bxdg=="
@@ -565,11 +555,7 @@ def generated_content(request):
     return render(request, 'generated_content.html')
 
 
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.dateparse import parse_date
-import json
+
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
@@ -626,39 +612,6 @@ def profile(request):
 
     return JsonResponse(response_data)
 
-
-
-# @login_required
-# def profile(request):
-#     user = request.user
-#     profile = Profile.objects.get(user=user)
-#     errors = []
-
-#     if request.method == 'POST':
-#         user.first_name = request.POST.get('first_name')
-#         user.last_name = request.POST.get('last_name')
-#         profile.bio = request.POST.get('bio')
-#         profile.location = request.POST.get('location')
-        
-#         birth_date = request.POST.get('birth_date')
-#         if birth_date:
-#             try:
-#                 profile.birth_date = datetime.strptime(birth_date, '%Y-%m-%d').date()
-#             except ValueError:
-#                 errors.append("Invalid date format for birth date.")
-#                 profile.birth_date = None
-
-#         if not user.first_name:
-#             errors.append("First name is required.")
-#         if not user.last_name:
-#             errors.append("Last name is required.")
-
-#         if not errors:
-#             user.save()
-#             profile.save()
-#             return redirect('profile')
-
-#     return render(request, 'profile.html', {'user': user, 'profile': profile, 'errors': errors})
 
 
 @csrf_exempt
