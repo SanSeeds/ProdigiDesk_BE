@@ -298,6 +298,8 @@ def bhashini_translate(text: str,  to_code: str = "Hindi", from_code: str = "Eng
         "Tamil" :"ta",
         "Telugu": "te",
         "Marathi": "mr",
+        "Kannada" : "kn",
+        "Bengali" : "bn"
     }
     print(33333, text, 4444, to_code)
     from_code = lang_dict[from_code]
