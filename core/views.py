@@ -1,9 +1,11 @@
+from io import BytesIO
+import os
 import random
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from .email_llama3 import generate_email, bhashini_translate,generate_bus_pro, generate_offer_letter, generate_summary, generate_content, generate_sales_script  
+from django.http import HttpResponse, JsonResponse
+from .email_llama3 import add_slide, create_presentation, generate_email, bhashini_translate,generate_bus_pro, generate_offer_letter, generate_slide_content, generate_slide_titles, generate_summary, generate_content, generate_sales_script  
 from django.contrib.auth.models import User
 from django.utils.crypto import get_random_string
 from django.utils import timezone
@@ -31,8 +33,21 @@ from django.core.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.renderers import BaseRenderer
-
+from pptx import Presentation
+from pptx.util import Inches, Pt
+from pptx.dml.color import RGBColor
+from pptx.enum.text import PP_ALIGN
+from django.core.files.storage import default_storage
 from django.utils.dateparse import parse_date
+
+from django.shortcuts import render
+
+def test_report(request):
+    report_path = os.path.join(os.path.dirname(__file__), 'report.html')
+    with open(report_path, 'r') as file:
+        report_content = file.read()
+    return render(request, 'test_report.html', {'report_content': report_content})
+
 
 # Base64-encoded AES IV and Secret Key
 AES_IV_b64 = "KRP1pDpqmy2eJos035bxdg=="
@@ -87,11 +102,66 @@ def decrypt_data(encrypted_data):
         raise ValueError(f"Decryption error: {e}")
 
 
+# @csrf_exempt
+# def add_user(request):
+#     try:
+#         print("Request received")
+#         data = json.loads(request.body)
+#         print("Request body:", data)
+
+#         username = data.get('username')
+#         email = data.get('email')
+#         password = data.get('password')
+#         confirm_password = data.get('confirm_password')
+
+#         if not username or not email or not password or not confirm_password:
+#             print("Missing field(s)")
+#             return JsonResponse({'error': 'All fields are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         if password != confirm_password:
+#             print("Passwords do not match")
+#             return JsonResponse({'error': 'Passwords do not match.'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         try:
+#             validate_password(password)
+#             print("Password validation passed")
+#         except ValidationError as e:
+#             print("Password validation error:", e.messages)
+#             return JsonResponse({'error': list(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
+
+#         if User.objects.filter(username=username).exists():
+#             print("Username is already taken")
+#             return JsonResponse({'error': 'Username is already taken.'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         if User.objects.filter(email=email).exists():
+#             print("Email is already registered")
+#             return JsonResponse({'error': 'Email is already registered.'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         user = User.objects.create_user(username=username, email=email, password=password)
+#         print("User created:", user)
+
+#         return JsonResponse({'success': 'User created successfully.'}, status=status.HTTP_201_CREATED)
+
+#     except json.JSONDecodeError:
+#         print("Invalid JSON format")
+#         return JsonResponse({'error': 'Invalid JSON format.'}, status=status.HTTP_400_BAD_REQUEST)
+#     except Exception as e:
+#         print("Unexpected error:", str(e))
+#         return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 @csrf_exempt
 def add_user(request):
     try:
         print("Request received")
-        data = json.loads(request.body)
+        # Extract and decrypt the incoming payload
+        encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
+        if not encrypted_content:
+            print("No encrypted content found in the request.")
+            return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
+        
+        decrypted_content = decrypt_data(encrypted_content)
+        data = json.loads(decrypted_content)
         print("Request body:", data)
 
         username = data.get('username')
@@ -101,38 +171,41 @@ def add_user(request):
 
         if not username or not email or not password or not confirm_password:
             print("Missing field(s)")
-            return JsonResponse({'error': 'All fields are required.'}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'error': 'All fields are required.'}, status=400)
 
         if password != confirm_password:
             print("Passwords do not match")
-            return JsonResponse({'error': 'Passwords do not match.'}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'error': 'Passwords do not match.'}, status=400)
 
         try:
             validate_password(password)
             print("Password validation passed")
         except ValidationError as e:
             print("Password validation error:", e.messages)
-            return JsonResponse({'error': list(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'error': list(e.messages)}, status=400)
 
         if User.objects.filter(username=username).exists():
             print("Username is already taken")
-            return JsonResponse({'error': 'Username is already taken.'}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'error': 'Username is already taken.'}, status=400)
 
         if User.objects.filter(email=email).exists():
             print("Email is already registered")
-            return JsonResponse({'error': 'Email is already registered.'}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'error': 'Email is already registered.'}, status=400)
 
         user = User.objects.create_user(username=username, email=email, password=password)
         print("User created:", user)
 
-        return JsonResponse({'success': 'User created successfully.'}, status=status.HTTP_201_CREATED)
+        # Encrypt the response content
+        encrypted_response = encrypt_data({'success': 'User created successfully.'})
+
+        return JsonResponse({'encrypted_content': encrypted_response}, status=201)
 
     except json.JSONDecodeError:
         print("Invalid JSON format")
-        return JsonResponse({'error': 'Invalid JSON format.'}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({'error': 'Invalid JSON format.'}, status=400)
     except Exception as e:
         print("Unexpected error:", str(e))
-        return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 def generate_otp():
@@ -213,6 +286,8 @@ def forgot_password(request):
 
     return JsonResponse({'success': 'OTP sent successfully'}, status=200)
 
+
+
 def landing(request):
     return render(request, 'landing.html')
 
@@ -220,11 +295,53 @@ def about(request):
     return render(request, 'about.html')
 
 
+# @csrf_exempt
+# def signin(request):
+#     if request.method == 'POST':
+#         try:
+#             data = json.loads(request.body)
+#             email = data.get('email')
+#             password = data.get('password')
+            
+#             if not email or not password:
+#                 return JsonResponse({'error': 'Email and password are required'}, status=400)
+
+#             try:
+#                 user = User.objects.get(email=email)
+#             except User.DoesNotExist:
+#                 return JsonResponse({'error': 'Invalid email or password'}, status=400)
+
+#             user = authenticate(request, username=user.username, password=password)
+#             if user is not None:
+#                 login(request, user)
+#                 refresh = RefreshToken.for_user(user)
+#                 return JsonResponse({
+#                     'success': 'User authenticated',
+#                     'access': str(refresh.access_token),
+#                     'refresh': str(refresh)
+#                 }, status=200)
+#             else:
+#                 return JsonResponse({'error': 'Invalid email or password'}, status=400)
+#         except json.JSONDecodeError:
+#             return JsonResponse({'error': 'Invalid JSON'}, status=400)
+#         except Exception as e:
+#             # Log the exception (consider using logging framework)
+#             return JsonResponse({'error': 'Internal server error'}, status=500)
+#     return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+
 @csrf_exempt
 def signin(request):
     if request.method == 'POST':
         try:
-            data = json.loads(request.body)
+            # Extract and decrypt the incoming payload
+            encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
+            if not encrypted_content:
+                return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
+
+            decrypted_content = decrypt_data(encrypted_content)
+            data = json.loads(decrypted_content)
+
             email = data.get('email')
             password = data.get('password')
             
@@ -240,11 +357,15 @@ def signin(request):
             if user is not None:
                 login(request, user)
                 refresh = RefreshToken.for_user(user)
-                return JsonResponse({
+
+                # Encrypt the response content
+                encrypted_response = encrypt_data({
                     'success': 'User authenticated',
                     'access': str(refresh.access_token),
                     'refresh': str(refresh)
-                }, status=200)
+                })
+
+                return JsonResponse({'encrypted_content': encrypted_response}, status=200)
             else:
                 return JsonResponse({'error': 'Invalid email or password'}, status=400)
         except json.JSONDecodeError:
@@ -253,6 +374,7 @@ def signin(request):
             # Log the exception (consider using logging framework)
             return JsonResponse({'error': 'Internal server error'}, status=500)
     return JsonResponse({'error': 'Invalid request method'}, status=405)
+
 
 @csrf_exempt
 def reset_password(request):
@@ -367,6 +489,7 @@ def email_generator(request):
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
+
 
 
 @csrf_exempt
@@ -643,20 +766,26 @@ def change_password(request):
 
     return JsonResponse({'error': 'Invalid request method.'}, status=405)
 
-@csrf_exempt
+
+# Decorator to specify that this view only accepts POST requests
 @api_view(['POST'])
+# Decorator to enforce that the user must be authenticated to access this view
 @permission_classes([IsAuthenticated])
 def summarize_document(request):
     try:
         # Extract and decrypt the incoming payload
+        # Get the encrypted content from the POST request
         encrypted_content = request.POST.get('encrypted_content')
+        # Check if 'encrypted_content' is not found in the request, return an error response
         if not encrypted_content:
             return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
 
+        # Decrypt the content
         decrypted_content = decrypt_data(encrypted_content)
+        # Parse the decrypted content as JSON
         data = json.loads(decrypted_content)
 
-        # Extract data from the request
+        # Extract data fields from the decrypted JSON data
         document_context = data.get('document_context')
         main_subject = data.get('main_subject')
         summary_purpose = data.get('summary_purpose')
@@ -666,9 +795,10 @@ def summarize_document(request):
         tone = data.get('tone')
         format = data.get('format')
         additional_instructions = data.get('additional_instructions')
+        # Extract the document file from the request
         document = request.FILES.get('document')
 
-        # Call the generate_summary function
+        # Call the function to generate the summary with the extracted data
         summary_content = generate_summary(
             document_context,
             main_subject,
@@ -682,37 +812,49 @@ def summarize_document(request):
             document
         )
 
+        # Check if the summary content was successfully generated
         if summary_content:
-            # Encrypt the response content
+            # Encrypt the generated summary content
             encrypted_content = encrypt_data({'generated_content': summary_content})
-
+            # Return the encrypted content in a JSON response with a 200 OK status
             return JsonResponse({'encrypted_content': encrypted_content}, status=200)
 
-        # Handle case where summary generation failed
+        # If summary generation failed, return an error response
         return JsonResponse({'error': 'Failed to generate summary. Please try again.'}, status=500)
 
     except Exception as e:
-        # Handle any exceptions
+        # Handle any exceptions, return an error response with the error message
         return JsonResponse({'error': str(e)}, status=500)
 
-    # Handle GET request or any other method
+    # Return a method not allowed error if the request method is not POST
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
 
 
-@csrf_exempt
+
+
+
+
+
+# Decorator to specify that this view only accepts POST requests
 @api_view(['POST'])
+# Decorator to enforce that the user must be authenticated to access this view
 @permission_classes([IsAuthenticated])
 def content_generator(request):
     try:
         # Extract and decrypt the incoming payload
+        # Load the request body and decode it to UTF-8, then parse it as JSON to get the 'encrypted_content' field
         encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
+        # Check if 'encrypted_content' is not found in the request, return an error response
         if not encrypted_content:
             return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
 
+        # Decrypt the content
         decrypted_content = decrypt_data(encrypted_content)
+        # Parse the decrypted content as JSON
         data = json.loads(decrypted_content)
 
+        # Extract various fields from the decrypted JSON data
         company_info = data.get('company_info')
         content_purpose = data.get('content_purpose')
         desired_action = data.get('desired_action')
@@ -724,7 +866,7 @@ def content_generator(request):
         seo_keywords = data.get('seo_keywords')
         references = data.get('references')
 
-        # Call the generate_content function
+        # Call the function to generate the content with the extracted data
         content = generate_content(
             company_info,
             content_purpose,
@@ -738,36 +880,49 @@ def content_generator(request):
             references
         )
 
+        # Check if the content was successfully generated
         if content:
-            # Encrypt the response content
+            # Encrypt the generated content
             encrypted_response_content = encrypt_data({'generated_content': content})
+            # Return the encrypted content in a JSON response with a 200 OK status
             return JsonResponse({'encrypted_content': encrypted_response_content}, status=200)
 
+        # If content generation failed, return an error response
         return JsonResponse({'error': 'Failed to generate content. Please try again.'}, status=500)
 
     except json.JSONDecodeError:
+        # Handle JSON decoding errors, return an error response
         return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
     except ValueError as e:
+        # Handle other value errors, return an error response with the error message
         return JsonResponse({'error': str(e)}, status=400)
     except Exception as e:
+        # Handle any other exceptions, return an error response with the error message
         return JsonResponse({'error': str(e)}, status=500)
 
+    # Return a method not allowed error if the request method is not POST
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
 
-@csrf_exempt
+# Decorator to specify that this view only accepts POST requests
 @api_view(['POST'])
+# Decorator to enforce that the user must be authenticated to access this view
 @permission_classes([IsAuthenticated])
 def sales_script_generator(request):
     try:
         # Extract and decrypt the incoming payload
+        # Load the request body and decode it to UTF-8, then parse it as JSON to get the 'encrypted_content' field
         encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
+        # Check if 'encrypted_content' is not found in the request, return an error response
         if not encrypted_content:
             return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
 
+        # Decrypt the content
         decrypted_content = decrypt_data(encrypted_content)
+        # Parse the decrypted content as JSON
         data = json.loads(decrypted_content)
 
+        # Extract various fields from the decrypted JSON data
         num_words = data.get('num_words')
         company_details = data.get('company_details')
         product_descriptions = data.get('product_descriptions')
@@ -782,7 +937,7 @@ def sales_script_generator(request):
         compliance = data.get('compliance')
         tech_integration = data.get('tech_integration')
 
-        # Call the generate_sales_script function
+        # Call the function to generate the sales script with the extracted data
         sales_script = generate_sales_script(
             company_details,
             num_words,
@@ -799,22 +954,28 @@ def sales_script_generator(request):
             tech_integration
         )
 
+        # Check if the sales script was successfully generated
         if sales_script:
-            # Encrypt the response content
+            # Encrypt the generated sales script content
             encrypted_content = encrypt_data({'generated_content': sales_script})
+            # Return the encrypted content in a JSON response with a 200 OK status
             return JsonResponse({'encrypted_content': encrypted_content}, status=200)
 
+        # If the sales script generation failed, return an error response
         return JsonResponse({'error': 'Failed to generate sales script. Please try again.'}, status=500)
 
     except json.JSONDecodeError:
+        # Handle JSON decoding errors, return an error response
         return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
     except ValueError as e:
+        # Handle other value errors, return an error response with the error message
         return JsonResponse({'error': str(e)}, status=400)
     except Exception as e:
+        # Handle any other exceptions, return an error response with the error message
         return JsonResponse({'error': str(e)}, status=500)
 
+    # Return a method not allowed error if the request method is not POST
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
-
 
 
 @api_view(['POST'])
@@ -822,4 +983,8 @@ def sales_script_generator(request):
 def logout_view(request):
     logout(request)
     return JsonResponse({'success': 'Logged out successfully'}, status=200)
+
+
+
+
 

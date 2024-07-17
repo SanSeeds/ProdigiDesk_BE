@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 from corsheaders.defaults import default_headers
 from django.conf import settings
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +21,16 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-)$dd0d(!-&&9!p(b_1prn+fn!g3)ln*$lzzai%trbk%8cyr9uh'
-
+GROQ_SECRET_ACCESS_KEY = config('GROQ_SECRET_ACCESS_KEY')
+BHASHINI_API_KEY = config('BHASHINI_API_KEY')
+BHASHINI_USER_ID = config('BHASHINI_USER_ID')
+AES_IV_b64 = config('AES_IV_b64')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 
-# ALLOWED_HOSTS = []
+ALLOWED_HOSTS = []
+
 # #AUTH_USER_MODEL = 'core.Profile'
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_HOST = 'smtp.office365.com'
@@ -50,6 +55,8 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID')
 RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET')
+
+DEFAULT_BACKGROUND_IMAGE_PATH = './core/static/ppt_bg.jpg'
 
 # Application definition
 
@@ -90,6 +97,7 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
     'authorization',
     'api_key',
 ]
+
 
 CORS_ALLOW_CREDENTIALS = True
 

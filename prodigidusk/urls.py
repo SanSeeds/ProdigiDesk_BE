@@ -4,6 +4,7 @@ from core import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+        path('test_report/', views.test_report, name='test_report'),
     path('', views.landing, name='landing'),
     path('about/', views.about, name='about'),
     path('signin/', views.signin, name='signin'),
@@ -23,6 +24,12 @@ urlpatterns = [
     path('translate/', views.translate, name='translate'),
     path('change_password/', views.change_password, name='change_password'),
     path('send_otp/', views.send_otp, name='send_otp'),
-    path('add_user/', views.add_user, name='add_user'),   
+    path('add_user/', views.add_user, name='add_user'),
+    # path('generate_slide_titles/', views.generate_slide_titles, name='generate_slide_titles'),
+    # path('generate_slide_content/', views.generate_slide_content, name='generate_slide_content'),
+    path('add_slide/', views.add_slide, name='add_slide'),
+    path('create_presentation/', views.create_presentation, name='create_presentation'),
+    
+    
 ]
 
