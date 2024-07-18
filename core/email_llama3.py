@@ -18,7 +18,6 @@ def contains_inappropriate_language(text: str) -> bool:
     inappropriate_words = ["stupid", "idiot", "badword3"]
     return any(word in text.lower() for word in inappropriate_words)
 
-
 # Function to sanitize input containing inappropriate words
 def sanitize_input(input_str):
     return profanity.censor(input_str)

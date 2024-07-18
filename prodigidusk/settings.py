@@ -41,7 +41,7 @@ ALLOWED_HOSTS = []
 # DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = '*'
 #AUTH_USER_MODEL = 'core.Profile'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'

@@ -102,54 +102,6 @@ def decrypt_data(encrypted_data):
         raise ValueError(f"Decryption error: {e}")
 
 
-# @csrf_exempt
-# def add_user(request):
-#     try:
-#         print("Request received")
-#         data = json.loads(request.body)
-#         print("Request body:", data)
-
-#         username = data.get('username')
-#         email = data.get('email')
-#         password = data.get('password')
-#         confirm_password = data.get('confirm_password')
-
-#         if not username or not email or not password or not confirm_password:
-#             print("Missing field(s)")
-#             return JsonResponse({'error': 'All fields are required.'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         if password != confirm_password:
-#             print("Passwords do not match")
-#             return JsonResponse({'error': 'Passwords do not match.'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         try:
-#             validate_password(password)
-#             print("Password validation passed")
-#         except ValidationError as e:
-#             print("Password validation error:", e.messages)
-#             return JsonResponse({'error': list(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
-
-#         if User.objects.filter(username=username).exists():
-#             print("Username is already taken")
-#             return JsonResponse({'error': 'Username is already taken.'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         if User.objects.filter(email=email).exists():
-#             print("Email is already registered")
-#             return JsonResponse({'error': 'Email is already registered.'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         user = User.objects.create_user(username=username, email=email, password=password)
-#         print("User created:", user)
-
-#         return JsonResponse({'success': 'User created successfully.'}, status=status.HTTP_201_CREATED)
-
-#     except json.JSONDecodeError:
-#         print("Invalid JSON format")
-#         return JsonResponse({'error': 'Invalid JSON format.'}, status=status.HTTP_400_BAD_REQUEST)
-#     except Exception as e:
-#         print("Unexpected error:", str(e))
-#         return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
 @csrf_exempt
 def add_user(request):
     try:
@@ -830,12 +782,6 @@ def summarize_document(request):
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
 
-
-
-
-
-
-
 # Decorator to specify that this view only accepts POST requests
 @api_view(['POST'])
 # Decorator to enforce that the user must be authenticated to access this view
@@ -987,4 +933,237 @@ def logout_view(request):
 
 
 
+
+# @csrf_exempt
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def generate_slide_titles(request):
+#     try:
+#         encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
+#         if not encrypted_content:
+#             return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
+
+#         decrypted_content = decrypt_data(encrypted_content)
+#         data = json.loads(decrypted_content)
+
+#         title = data.get('title')
+#         num_slides = data.get('num_slides')
+#         special_instructions = data.get('special_instructions')
+
+#         if not title or not num_slides:
+#             return JsonResponse({'error': 'Missing required parameters.'}, status=400)
+
+#         slide_titles = generate_slide_titles(title, num_slides, special_instructions)
+#         encrypted_response = encrypt_data({'slide_titles': slide_titles})
+#         return JsonResponse({'encrypted_content': encrypted_response}, status=200)
+
+#     except json.JSONDecodeError:
+#         return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
+#     except ValueError as e:
+#         return JsonResponse({'error': str(e)}, status=400)
+#     except Exception as e:
+#         return JsonResponse({'error': str(e)}, status=500)
+
+
+# @csrf_exempt
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def generate_slide_content(request):
+#     try:
+#         encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
+#         if not encrypted_content:
+#             return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
+
+#         decrypted_content = decrypt_data(encrypted_content)
+#         data = json.loads(decrypted_content)
+
+#         st = data.get('st')
+#         title = data.get('title')
+#         special_instructions = data.get('special_instructions')
+
+#         if not st or not title:
+#             return JsonResponse({'error': 'Missing required parameters.'}, status=400)
+
+#         slide_content = generate_slide_content(st, title, special_instructions)
+#         encrypted_response = encrypt_data({'slide_content': slide_content})
+#         return JsonResponse({'encrypted_content': encrypted_response}, status=200)
+
+#     except json.JSONDecodeError:
+#         return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
+#     except ValueError as e:
+#         return JsonResponse({'error': str(e)}, status=400)
+#     except Exception as e:
+#         return JsonResponse({'error': str(e)}, status=500)
+
+
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_slide_api(request):
+    try:
+        # Extract and decrypt the incoming payload
+        encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
+        if not encrypted_content:
+            return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
+
+        decrypted_content = decrypt_data(encrypted_content)
+        data = json.loads(decrypted_content)
+
+        # Extract parameters from the request
+        prs_data = data.get('presentation')
+        title = data.get('title')
+        content = data.get('content')
+        bg_image_path = data.get('bgImagePath')
+
+        if not prs_data or not title or not content:
+            return JsonResponse({'error': 'Missing required parameters.'}, status=400)
+
+        # Deserialize the presentation data
+        prs = Presentation(prs_data)
+
+        # Call the add_slide function
+        add_slide(prs, title, content, bg_image_path)
+
+        # Save the presentation to a BytesIO object
+        output = BytesIO()
+        prs.save(output)
+        output.seek(0)
+
+        # Encrypt the response content
+        encrypted_content = encrypt_data(output.read())
+        return JsonResponse({'encrypted_content': encrypted_content}, status=200)
+
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
+    except ValueError as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Method not allowed.'}, status=405)
+
+
+# API With no Encryption and Decryption Logic 
+
+# @csrf_exempt
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def create_presentation(request):
+#     try:
+#         # Load the request body and decode it to UTF-8, then parse it as JSON
+#         data = json.loads(request.body.decode('utf-8'))
+
+#         # Extract fields from the JSON data
+#         title = data.get('title')
+#         num_slides = data.get('num_slides')
+#         special_instructions = data.get('special_instructions')
+#         bg_image_path = data.get('bg_image_path', None)
+
+#         # Generate the presentation
+#         prs = Presentation()
+#         slide_titles = generate_slide_titles(title, num_slides, special_instructions)
+#         slide_titles = slide_titles.replace('[', '').replace(']', '').replace('"', '').split(',')
+
+#         max_points_per_slide = 4
+
+#         for st in slide_titles:
+#             slide_content = generate_slide_content(st, title, special_instructions).replace("*", '').split('\n')
+#             current_content = []
+#             slide_count = 1
+
+#             for point in slide_content:
+#                 current_content.append(point.strip())
+#                 if len(current_content) >= max_points_per_slide:
+#                     add_slide(prs, st if slide_count == 1 else f"{st} (contd.)", current_content, bg_image_path)
+#                     current_content = []
+#                     slide_count += 1
+
+#             if current_content:
+#                 add_slide(prs, st if slide_count == 1 else f"{st} (contd.)", current_content, bg_image_path)
+
+#         # Save the presentation to a BytesIO object
+#         pptx_buffer = BytesIO()
+#         prs.save(pptx_buffer)
+#         pptx_buffer.seek(0)
+
+#         # Create a response with the appropriate content type and headers for a file download
+#         response = HttpResponse(pptx_buffer, content_type='application/vnd.openxmlformats-officedocument.presentationml.presentation')
+#         response['Content-Disposition'] = 'attachment; filename="SmartOffice_Assistant_Presentation.pptx"'
+
+#         return response
+
+#     except json.JSONDecodeError:
+#         return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
+#     except ValueError as e:
+#         return JsonResponse({'error': str(e)}, status=400)
+#     except Exception as e:
+#         return JsonResponse({'error': str(e)}, status=500)
+
+#     return JsonResponse({'error': 'Method not allowed.'}, status=405)
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_presentation(request):
+    try:
+        # Extract and decrypt the incoming payload
+        encrypted_content = request.POST.get('encrypted_content')
+        if not encrypted_content:
+            return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
+
+        # Decrypt the content
+        decrypted_content = decrypt_data(encrypted_content)
+        data = json.loads(decrypted_content)
+
+        # Extract fields from the decrypted JSON data
+        title = data.get('title')
+        num_slides = data.get('num_slides')
+        special_instructions = data.get('special_instructions')
+        bg_image_path = data.get('bg_image_path', None)
+
+        # Generate the presentation
+        prs = Presentation()
+        slide_titles = generate_slide_titles(title, num_slides, special_instructions)
+        slide_titles = slide_titles.replace('[', '').replace(']', '').replace('"', '').split(',')
+
+        max_points_per_slide = 4
+
+        for st in slide_titles:
+            slide_content = generate_slide_content(st, title, special_instructions).replace("*", '').split('\n')
+            current_content = []
+            slide_count = 1
+
+            for point in slide_content:
+                current_content.append(point.strip())
+                if len(current_content) >= max_points_per_slide:
+                    add_slide(prs, st if slide_count == 1 else f"{st} (contd.)", current_content, bg_image_path)
+                    current_content = []
+                    slide_count += 1
+
+            if current_content:
+                add_slide(prs, st if slide_count == 1 else f"{st} (contd.)", current_content, bg_image_path)
+
+        # Save the presentation to a BytesIO object
+        pptx_buffer = BytesIO()
+        prs.save(pptx_buffer)
+        pptx_buffer.seek(0)
+
+        # Encrypt the response content
+        encrypted_content = encrypt_data(pptx_buffer.read())
+
+        # Create a response with the appropriate content type and headers for a file download
+        response = HttpResponse(encrypted_content, content_type='application/vnd.openxmlformats-officedocument.presentationml.presentation')
+        response['Content-Disposition'] = 'attachment; filename="SmartOffice_Assistant_Presentation.pptx"'
+
+        return response
+
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
+    except ValueError as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
