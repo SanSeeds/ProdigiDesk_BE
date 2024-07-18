@@ -102,54 +102,6 @@ def decrypt_data(encrypted_data):
         raise ValueError(f"Decryption error: {e}")
 
 
-# @csrf_exempt
-# def add_user(request):
-#     try:
-#         print("Request received")
-#         data = json.loads(request.body)
-#         print("Request body:", data)
-
-#         username = data.get('username')
-#         email = data.get('email')
-#         password = data.get('password')
-#         confirm_password = data.get('confirm_password')
-
-#         if not username or not email or not password or not confirm_password:
-#             print("Missing field(s)")
-#             return JsonResponse({'error': 'All fields are required.'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         if password != confirm_password:
-#             print("Passwords do not match")
-#             return JsonResponse({'error': 'Passwords do not match.'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         try:
-#             validate_password(password)
-#             print("Password validation passed")
-#         except ValidationError as e:
-#             print("Password validation error:", e.messages)
-#             return JsonResponse({'error': list(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
-
-#         if User.objects.filter(username=username).exists():
-#             print("Username is already taken")
-#             return JsonResponse({'error': 'Username is already taken.'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         if User.objects.filter(email=email).exists():
-#             print("Email is already registered")
-#             return JsonResponse({'error': 'Email is already registered.'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         user = User.objects.create_user(username=username, email=email, password=password)
-#         print("User created:", user)
-
-#         return JsonResponse({'success': 'User created successfully.'}, status=status.HTTP_201_CREATED)
-
-#     except json.JSONDecodeError:
-#         print("Invalid JSON format")
-#         return JsonResponse({'error': 'Invalid JSON format.'}, status=status.HTTP_400_BAD_REQUEST)
-#     except Exception as e:
-#         print("Unexpected error:", str(e))
-#         return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
 @csrf_exempt
 def add_user(request):
     try:
@@ -828,12 +780,6 @@ def summarize_document(request):
 
     # Return a method not allowed error if the request method is not POST
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
-
-
-
-
-
-
 
 
 # Decorator to specify that this view only accepts POST requests
