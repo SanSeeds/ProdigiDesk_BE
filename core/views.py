@@ -247,41 +247,6 @@ def about(request):
     return render(request, 'about.html')
 
 
-# @csrf_exempt
-# def signin(request):
-#     if request.method == 'POST':
-#         try:
-#             data = json.loads(request.body)
-#             email = data.get('email')
-#             password = data.get('password')
-            
-#             if not email or not password:
-#                 return JsonResponse({'error': 'Email and password are required'}, status=400)
-
-#             try:
-#                 user = User.objects.get(email=email)
-#             except User.DoesNotExist:
-#                 return JsonResponse({'error': 'Invalid email or password'}, status=400)
-
-#             user = authenticate(request, username=user.username, password=password)
-#             if user is not None:
-#                 login(request, user)
-#                 refresh = RefreshToken.for_user(user)
-#                 return JsonResponse({
-#                     'success': 'User authenticated',
-#                     'access': str(refresh.access_token),
-#                     'refresh': str(refresh)
-#                 }, status=200)
-#             else:
-#                 return JsonResponse({'error': 'Invalid email or password'}, status=400)
-#         except json.JSONDecodeError:
-#             return JsonResponse({'error': 'Invalid JSON'}, status=400)
-#         except Exception as e:
-#             # Log the exception (consider using logging framework)
-#             return JsonResponse({'error': 'Internal server error'}, status=500)
-#     return JsonResponse({'error': 'Invalid request method'}, status=405)
-
-
 @csrf_exempt
 def signin(request):
     if request.method == 'POST':
@@ -395,20 +360,20 @@ def email_generator(request):
 
             purpose = data.get('purpose')
             if purpose == 'others':
-                purpose = data.get('purpose_other')
+                purpose = data.get('otherPurpose')
             num_words = data.get('num_words')
             subject = data.get('subject')
-            rephrase = data.get('rephrase', False)
+            rephrase = data.get('rephraseSubject', False)
             to = data.get('to')
             tone = data.get('tone')
             keywords = [data.get(f'keyword_{i}') for i in range(1, 9)]
-            contextual_background = data.get('contextual_background')
-            call_to_action = data.get('call_to_action')
-            if call_to_action == 'others':
-                call_to_action = data.get('call_to_action_other')
-            additional_details = data.get('additional_details')
-            priority_level = data.get('priority_level')
-            closing_remarks = data.get('closing_remarks')
+            contextual_background = data.get('contextualBackground')
+            call_to_action = data.get('callToAction')
+            if call_to_action == 'Other':
+                call_to_action = data.get('otherCallToAction')
+            additional_details = data.get('additionalDetails')
+            priority_level = data.get('priorityLevel')
+            closing_remarks = data.get('closingRemarks')
 
             generated_content = generate_email(
                 purpose, num_words, subject, rephrase, to, tone, keywords,
@@ -417,15 +382,6 @@ def email_generator(request):
             )
 
             if generated_content:
-                # Send the email
-                send_mail(
-                    subject,
-                    generated_content,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [to],
-                    fail_silently=False,
-                )
-
                 # Encrypt the response content
                 encrypted_response = encrypt_data({'generated_content': generated_content})
 
@@ -441,8 +397,6 @@ def email_generator(request):
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
-
-
 
 @csrf_exempt
 @api_view(['POST'])
@@ -530,19 +484,19 @@ def business_proposal_generator(request):
             decrypted_content = decrypt_data(encrypted_content)
             data = json.loads(decrypted_content)
 
-            business_intro = data.get('business_intro')
-            proposal_objective = data.get('proposal_objective')
-            num_words = data.get('num_words')
-            scope_of_work = data.get('scope_of_work')
-            project_phases = data.get('project_phases')
-            expected_outcomes = data.get('expected_outcomes')
-            innovative_approaches = data.get('innovative_approaches')
-            technologies_used = data.get('technologies_used')
-            target_audience = data.get('target_audience')
-            budget_info = data.get('budget_info')
+            business_intro = data.get('businessIntroduction')
+            proposal_objective = data.get('proposalObjective')
+            num_words = data.get('numberOfWords')
+            scope_of_work = data.get('scopeOfWork')
+            project_phases = data.get('projectPhases')
+            expected_outcomes = data.get('expectedOutcomes')
+            innovative_approaches = data.get('innovativeApproaches')
+            technologies_used = data.get('technologiesUsed')
+            target_audience = data.get('targetAudience')
+            budget_info = data.get('budgetInformation')
             timeline = data.get('timeline')
-            benefits = data.get('benefits')
-            closing_remarks = data.get('closing_remarks')
+            benefits = data.get('benefitsToRecipient')
+            closing_remarks = data.get('closingRemarks')
 
             # Assuming generate_bus_pro is a function that processes the proposal data
             proposal_content = generate_bus_pro(
@@ -565,7 +519,6 @@ def business_proposal_generator(request):
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
-
 
 
 @csrf_exempt
@@ -719,27 +672,84 @@ def change_password(request):
     return JsonResponse({'error': 'Invalid request method.'}, status=405)
 
 
-# Decorator to specify that this view only accepts POST requests
+# # Decorator to specify that this view only accepts POST requests
+# @api_view(['POST'])
+# # Decorator to enforce that the user must be authenticated to access this view
+# @permission_classes([IsAuthenticated])
+# def summarize_document(request):
+#     try:
+#         # Extract and decrypt the incoming payload
+#         # Get the encrypted content from the POST request
+#         encrypted_content = request.POST.get('encrypted_content')
+#         # Check if 'encrypted_content' is not found in the request, return an error response
+#         if not encrypted_content:
+#             return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
+
+#         # Decrypt the content
+#         decrypted_content = decrypt_data(encrypted_content)
+#         # Parse the decrypted content as JSON
+#         data = json.loads(decrypted_content)
+
+#         # Extract data fields from the decrypted JSON data
+#         document_context = data.get('documentContext')
+#         main_subject = data.get('mainSubject')
+#         summary_purpose = data.get('summary_purpose')
+#         length_detail = data.get('length_detail')
+#         important_elements = data.get('important_elements')
+#         audience = data.get('audience')
+#         tone = data.get('tone')
+#         format = data.get('format')
+#         additional_instructions = data.get('additional_instructions')
+#         # Extract the document file from the request
+#         document = request.FILES.get('document')
+
+#         # Call the function to generate the summary with the extracted data
+#         summary_content = generate_summary(
+#             document_context,
+#             main_subject,
+#             summary_purpose,
+#             length_detail,
+#             important_elements,
+#             audience,
+#             tone,
+#             format,
+#             additional_instructions,
+#             document
+#         )
+
+#         # Check if the summary content was successfully generated
+#         if summary_content:
+#             # Encrypt the generated summary content
+#             encrypted_content = encrypt_data({'generated_content': summary_content})
+#             # Return the encrypted content in a JSON response with a 200 OK status
+#             return JsonResponse({'encrypted_content': encrypted_content}, status=200)
+
+#         # If summary generation failed, return an error response
+#         return JsonResponse({'error': 'Failed to generate summary. Please try again.'}, status=500)
+
+#     except Exception as e:
+#         # Handle any exceptions, return an error response with the error message
+#         return JsonResponse({'error': str(e)}, status=500)
+
+#     # Return a method not allowed error if the request method is not POST
+#     return JsonResponse({'error': 'Method not allowed.'}, status=405)
+
+
+
 @api_view(['POST'])
-# Decorator to enforce that the user must be authenticated to access this view
 @permission_classes([IsAuthenticated])
 def summarize_document(request):
     try:
         # Extract and decrypt the incoming payload
-        # Get the encrypted content from the POST request
         encrypted_content = request.POST.get('encrypted_content')
-        # Check if 'encrypted_content' is not found in the request, return an error response
         if not encrypted_content:
             return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
 
-        # Decrypt the content
         decrypted_content = decrypt_data(encrypted_content)
-        # Parse the decrypted content as JSON
         data = json.loads(decrypted_content)
 
-        # Extract data fields from the decrypted JSON data
-        document_context = data.get('document_context')
-        main_subject = data.get('main_subject')
+        document_context = data.get('documentContext')
+        main_subject = data.get('mainSubject')
         summary_purpose = data.get('summary_purpose')
         length_detail = data.get('length_detail')
         important_elements = data.get('important_elements')
@@ -747,10 +757,18 @@ def summarize_document(request):
         tone = data.get('tone')
         format = data.get('format')
         additional_instructions = data.get('additional_instructions')
-        # Extract the document file from the request
-        document = request.FILES.get('document')
+        document_content = data.get('document_content')  # Get document content
 
-        # Call the function to generate the summary with the extracted data
+        # Process the uploaded document
+        document = request.FILES.get('document')
+        if document:
+            # Assuming the document is a text file
+            document_content = document.read().decode('utf-8')
+
+        if not document_content:
+            return JsonResponse({'error': 'No document content available.'}, status=400)
+
+        # Generate summary based on the document content and other parameters
         summary_content = generate_summary(
             document_context,
             main_subject,
@@ -761,25 +779,20 @@ def summarize_document(request):
             tone,
             format,
             additional_instructions,
-            document
+            document_content  # Pass document content to the summary function
         )
 
-        # Check if the summary content was successfully generated
         if summary_content:
-            # Encrypt the generated summary content
             encrypted_content = encrypt_data({'generated_content': summary_content})
-            # Return the encrypted content in a JSON response with a 200 OK status
             return JsonResponse({'encrypted_content': encrypted_content}, status=200)
 
-        # If summary generation failed, return an error response
         return JsonResponse({'error': 'Failed to generate summary. Please try again.'}, status=500)
 
     except Exception as e:
-        # Handle any exceptions, return an error response with the error message
         return JsonResponse({'error': str(e)}, status=500)
 
-    # Return a method not allowed error if the request method is not POST
-    return JsonResponse({'error': 'Method not allowed.'}, status=405)
+
+
 
 
 # Decorator to specify that this view only accepts POST requests
