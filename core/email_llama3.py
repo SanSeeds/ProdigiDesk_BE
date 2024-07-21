@@ -25,6 +25,31 @@ def sanitize_input(input_str):
 #os.environ["GROQ_SECRET_ACCESS_KEY"] = GROQ_SECRET_ACCESS_KEY
 
 
+# # Function to generate email
+# def generate_email(purpose, num_words, subject, rephrase, to, tone, keywords, contextual_background, call_to_action, additional_details, priority_level, closing_remarks):
+#     # Ensure all fields are checked for inappropriate language
+#     fields_to_check = [purpose, subject, keywords, contextual_background, call_to_action, additional_details, closing_remarks]
+#     if any(contains_inappropriate_language(str(field)) for field in fields_to_check if field is not None):
+#         return "Error: Input contains inappropriate language."
+    
+#     prompt = f"Generate an email of maximum {num_words} words and subject: {subject}, to {to}, maintain a {tone} tone, using the following keywords {keywords}, given the following inputs:"
+#     prompt += f"\nPurpose of the mail is {purpose}," if purpose else ""
+#     prompt += f"\nConsider the contextual background {contextual_background}," if contextual_background else ""
+#     prompt += f"\nWith an expectation of {call_to_action}," if call_to_action else ""
+#     prompt += f"\nIncorporate the following additional details: {additional_details}." if additional_details else ""
+#     prompt += f"\nThe mail is of {priority_level} priority." if priority_level else ""
+#     prompt += f"\nIncorporate the closing remarks {closing_remarks}." if closing_remarks else ""
+#     prompt += "\nRephrase the subject" if rephrase == "Y" else ""
+    
+#     client = Groq(api_key=GROQ_SECRET_ACCESS_KEY)
+#     chat_completion = client.chat.completions.create(
+#         messages=[{"role": "user", "content": prompt}],
+#         model="llama3-70b-8192"
+#     )
+    
+#     return chat_completion.choices[0].message.content
+
+
 # Function to generate email
 def generate_email(purpose, num_words, subject, rephrase, to, tone, keywords, contextual_background, call_to_action, additional_details, priority_level, closing_remarks):
     # Ensure all fields are checked for inappropriate language
@@ -49,8 +74,7 @@ def generate_email(purpose, num_words, subject, rephrase, to, tone, keywords, co
     
     return chat_completion.choices[0].message.content
 
-
-
+#text = generate_email("confirm details", "100", "Require Contact Details","Y" ,"client", "formal", "SPOC, AI, contract, project, deadline, payment", "Had a conversation with VP last week regarding an AI project on contract basis. Looking for further updates","meeting","","High","")
 def generate_bus_pro(business_intro, proposal_objective, num_words, scope_of_work, project_phases, expected_outcomes, innovative_approaches, technologies_used, target_audience,budget_info,timeline,benefits, closing_remarks):
     prompt = f"Generate an business proposal of maximum {num_words} words, given the following inputs: "
     if business_intro:
@@ -94,9 +118,6 @@ def generate_bus_pro(business_intro, proposal_objective, num_words, scope_of_wor
 
     # print(chat_completion.choices[0].message.content)
     return(chat_completion.choices[0].message.content)
-
-
-
 
 def generate_offer_letter(company_details,num_words, candidate_name, position_title, department, supervisor, status,location,
                           start_date, compensation, benefits, work_hours, duration,terms, acceptance_deadline,
@@ -156,6 +177,48 @@ def generate_offer_letter(company_details,num_words, candidate_name, position_ti
     return(chat_completion.choices[0].message.content)
 
 
+# def generate_summary(document_context, main_subject, summary_purpose, length_detail, important_elements, audience, tone, format, additional_instructions, document):
+#     prompt = f"Generate a summary of the given document {document} given the following inputs: "
+#     if document:
+#     #     prompt = prompt + "\n"+f"Added to the compensation there will be following benefits : {document}. "
+#         if document_context:
+#             prompt = prompt+ "\n" + f"Context of document: {document_context}, "
+#         if main_subject:
+#             prompt = prompt+ "\n" + f"Main subject: {main_subject}, "
+#         if summary_purpose:
+#             prompt = prompt + "\n"+ f"Purpose of generating summary {summary_purpose}, "
+#         if length_detail:
+#             prompt = prompt+ "\n" + f"Level of detail: {length_detail}, "
+#         if important_elements:
+#             prompt = prompt + "\n"+f"Important elements: {important_elements}. "
+#         if audience:
+#             prompt = prompt + "\n"+f"Target audience:{audience}. "
+#         if tone:
+#             prompt = prompt + "\n"+f"Expected tone: {tone}. "
+#         if format:
+#             prompt = prompt + "\n"+f"Expected format {format}. "
+#         if additional_instructions:
+#             prompt = prompt + "\n"+f"Additional Instructions: {additional_instructions}. "
+
+#         client = Groq(
+#             api_key=GROQ_SECRET_ACCESS_KEY   #os.environ.get("GROQ_API_KEY"),
+#         )
+
+#         chat_completion = client.chat.completions.create(
+#             messages=[
+#                 {
+#                     "role": "user",
+#                     "content": prompt,
+#                 }
+#             ],
+#             model="llama3-70b-8192",
+#         )
+
+#         # print(chat_completion.choices[0].message.content)
+#         return(chat_completion.choices[0].message.content)
+#     else:
+#         return("Error: Attach Document!!")
+
 def generate_summary(document_context, main_subject, summary_purpose, length_detail, important_elements, audience, tone, format, additional_instructions, document):
     prompt = f"Generate a summary of the given document {document} given the following inputs: "
     if document:
@@ -197,7 +260,6 @@ def generate_summary(document_context, main_subject, summary_purpose, length_det
         return(chat_completion.choices[0].message.content)
     else:
         return("Error: Attach Document!!")
-
 
 # Function to generate content based on provided parameters
 def generate_content(company_info, content_purpose, desired_action, topic_details, keywords, audience_profile, format_structure, num_words, seo_keywords, references):
