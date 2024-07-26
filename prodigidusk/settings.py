@@ -24,7 +24,12 @@ SECRET_KEY = 'django-insecure-)$dd0d(!-&&9!p(b_1prn+fn!g3)ln*$lzzai%trbk%8cyr9uh
 GROQ_SECRET_ACCESS_KEY = config('GROQ_SECRET_ACCESS_KEY')
 BHASHINI_API_KEY = config('BHASHINI_API_KEY')
 BHASHINI_USER_ID = config('BHASHINI_USER_ID')
-AES_IV_b64 = config('AES_IV_b64')
+AES_IV = config('AES_IV_b64')
+AES_SECRET_KEY = config('AES_SECRET_KEY_b64')
+ENCRYPTION_IV = config('ENCRYPTION_IV_b64')
+ENCRYPTION_SECRET_KEY = config('ENCRYPTION_SECRET_KEY_b64')
+
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -142,7 +147,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=150),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1800),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=15),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
@@ -180,6 +185,9 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainSlidingSerializer",
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
+
+# Set maximum file upload size (e.g., 5MB)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5MB
 
 
 # Password validation
