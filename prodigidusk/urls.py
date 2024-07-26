@@ -27,7 +27,7 @@ urlpatterns = [
     path('add_user/', views.add_user, name='add_user'),
     # path('generate_slide_titles/', views.generate_slide_titles, name='generate_slide_titles'),
     # path('generate_slide_content/', views.generate_slide_content, name='generate_slide_content'),
-    path('add_slide/', views.add_slide, name='add_slide'),
+
     path('create_presentation/', views.create_presentation, name='create_presentation'),
     
     

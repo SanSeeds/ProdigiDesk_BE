@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
-from .email_llama3 import add_slide, create_presentation, generate_email, bhashini_translate,generate_bus_pro, generate_offer_letter, generate_slide_content, generate_slide_titles, generate_summary, generate_content, generate_sales_script  
+from .email_llama3 import add_slide, create_presentation, extract_document_content, generate_email, bhashini_translate,generate_bus_pro, generate_offer_letter, generate_slide_content, generate_slide_titles, generate_summary, generate_content, generate_sales_script  
 from django.contrib.auth.models import User
 from django.utils.crypto import get_random_string
 from django.utils import timezone
@@ -39,8 +39,11 @@ from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
 from django.core.files.storage import default_storage
 from django.utils.dateparse import parse_date
-
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.core.files.storage import default_storage
 from django.shortcuts import render
+import fitz  # PyMuPDF
+from docx import Document as DocxDocument
 
 def test_report(request):
     report_path = os.path.join(os.path.dirname(__file__), 'report.html')
@@ -50,10 +53,10 @@ def test_report(request):
 
 
 # Base64-encoded AES IV and Secret Key
-AES_IV_b64 = "KRP1pDpqmy2eJos035bxdg=="
-AES_SECRET_KEY_b64 = "HOykfyW56Uesby8PTgxtSA=="
-ENCRYPTION_IV_b64 = "3G1Nd0j0l5BdPmJh01NrYg=="
-ENCRYPTION_SECRET_KEY_b64 = "XGp3hFq56Vdse3sLTtXyQQ=="
+AES_IV_b64 = settings.AES_IV
+AES_SECRET_KEY_b64 = settings.AES_SECRET_KEY
+ENCRYPTION_IV_b64 = settings.ENCRYPTION_IV
+ENCRYPTION_SECRET_KEY_b64 = settings.ENCRYPTION_SECRET_KEY
 
 # Decode Base64 strings to bytes
 AES_IV = base64.b64decode(AES_IV_b64)
@@ -100,7 +103,6 @@ def decrypt_data(encrypted_data):
         return decrypted_data.decode('utf-8')
     except Exception as e:
         raise ValueError(f"Decryption error: {e}")
-
 
 @csrf_exempt
 def add_user(request):
@@ -344,6 +346,61 @@ def dashboard(request):
     return render(request, 'dashboard.html')
 
 
+# @csrf_exempt
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def email_generator(request):
+#     if request.method == 'POST':
+#         try:
+#             # Extract and decrypt the incoming payload
+#             encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
+#             if not encrypted_content:
+#                 return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
+
+#             decrypted_content = decrypt_data(encrypted_content)
+#             data = json.loads(decrypted_content)
+
+#             purpose = data.get('purpose')
+#             if purpose == 'others':
+#                 purpose = data.get('otherPurpose')
+#             num_words = data.get('num_words')
+#             subject = data.get('subject')
+#             rephrase = data.get('rephraseSubject', False)
+#             to = data.get('to')
+#             tone = data.get('tone')
+#             keywords = [data.get(f'keyword_{i}') for i in range(1, 9)]
+#             contextual_background = data.get('contextualBackground')
+#             call_to_action = data.get('callToAction')
+#             if call_to_action == 'Other':
+#                 call_to_action = data.get('otherCallToAction')
+#             additional_details = data.get('additionalDetails')
+#             priority_level = data.get('priorityLevel')
+#             closing_remarks = data.get('closingRemarks')
+
+#             generated_content = generate_email(
+#                 purpose, num_words, subject, rephrase, to, tone, keywords,
+#                 contextual_background, call_to_action, additional_details,
+#                 priority_level, closing_remarks
+#             )
+
+#             if generated_content:
+#                 # Encrypt the response content
+#                 encrypted_response = encrypt_data({'generated_content': generated_content})
+
+#                 return JsonResponse({'encrypted_content': encrypted_response}, status=200)
+
+#             return JsonResponse({'error': 'Failed to generate email. Please try again.'}, status=500)
+
+#         except json.JSONDecodeError:
+#             return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
+#         except ValueError as e:
+#             return JsonResponse({'error': str(e)}, status=400)
+#         except Exception as e:
+#             return JsonResponse({'error': str(e)}, status=500)
+
+#     return JsonResponse({'error': 'Method not allowed.'}, status=405)
+
+
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -366,7 +423,8 @@ def email_generator(request):
             rephrase = data.get('rephraseSubject', False)
             to = data.get('to')
             tone = data.get('tone')
-            keywords = [data.get(f'keyword_{i}') for i in range(1, 9)]
+            keywords_str = data.get('keywords', '')  # Fetch the keywords as a comma-separated string
+            keywords = [keyword.strip() for keyword in keywords_str.split(',')] if keywords_str else []
             contextual_background = data.get('contextualBackground')
             call_to_action = data.get('callToAction')
             if call_to_action == 'Other':
@@ -397,6 +455,7 @@ def email_generator(request):
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
+
 
 @csrf_exempt
 @api_view(['POST'])
@@ -470,6 +529,56 @@ def translate(request):
     })
 
 
+# @csrf_exempt
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def business_proposal_generator(request):
+#     if request.method == 'POST':
+#         try:
+#             # Extract and decrypt the incoming payload
+#             encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
+#             if not encrypted_content:
+#                 return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
+
+#             decrypted_content = decrypt_data(encrypted_content)
+#             data = json.loads(decrypted_content)
+
+#             business_intro = data.get('businessIntroduction')
+#             proposal_objective = data.get('proposalObjective')
+#             num_words = data.get('numberOfWords')
+#             scope_of_work = data.get('scopeOfWork')
+#             project_phases = data.get('projectPhases')
+#             expected_outcomes = data.get('expectedOutcomes')
+#             innovative_approaches = data.get('innovativeApproaches')
+#             technologies_used = data.get('technologiesUsed')
+#             target_audience = data.get('targetAudience')
+#             budget_info = data.get('budgetInformation')
+#             timeline = data.get('timeline')
+#             benefits = data.get('benefitsToRecipient')
+#             closing_remarks = data.get('closingRemarks')
+
+#             # Assuming generate_bus_pro is a function that processes the proposal data
+#             proposal_content = generate_bus_pro(
+#                 business_intro, proposal_objective, num_words, scope_of_work,
+#                 project_phases, expected_outcomes, innovative_approaches,
+#                 technologies_used, target_audience, budget_info, timeline,
+#                 benefits, closing_remarks
+#             )
+
+#             # Encrypt the response content
+#             encrypted_content = encrypt_data({'generated_content': proposal_content})
+
+#             return JsonResponse({'encrypted_content': encrypted_content}, status=200)
+
+#         except json.JSONDecodeError:
+#             return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
+#         except ValueError as e:
+#             return JsonResponse({'error': str(e)}, status=400)
+#         except Exception as e:
+#             return JsonResponse({'error': str(e)}, status=500)
+
+#     return JsonResponse({'error': 'Method not allowed.'}, status=405)
+
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -490,20 +599,18 @@ def business_proposal_generator(request):
             scope_of_work = data.get('scopeOfWork')
             project_phases = data.get('projectPhases')
             expected_outcomes = data.get('expectedOutcomes')
-            innovative_approaches = data.get('innovativeApproaches')
-            technologies_used = data.get('technologiesUsed')
+            tech_innovations = data.get('technologiesAndInnovations')  # Combined field
             target_audience = data.get('targetAudience')
             budget_info = data.get('budgetInformation')
             timeline = data.get('timeline')
             benefits = data.get('benefitsToRecipient')
             closing_remarks = data.get('closingRemarks')
 
-            # Assuming generate_bus_pro is a function that processes the proposal data
+            # Generate business proposal
             proposal_content = generate_bus_pro(
                 business_intro, proposal_objective, num_words, scope_of_work,
-                project_phases, expected_outcomes, innovative_approaches,
-                technologies_used, target_audience, budget_info, timeline,
-                benefits, closing_remarks
+                project_phases, expected_outcomes, tech_innovations, target_audience,
+                budget_info, timeline, benefits, closing_remarks
             )
 
             # Encrypt the response content
@@ -521,12 +628,66 @@ def business_proposal_generator(request):
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
 
+# @csrf_exempt
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def offer_letter_generator(request):
+#     try:
+#         # Extract and decrypt the incoming payload
+#         encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
+#         if not encrypted_content:
+#             return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
+
+#         decrypted_content = decrypt_data(encrypted_content)
+#         data = json.loads(decrypted_content)
+
+#         company_details = data.get('companyDetails')
+#         num_words = data.get('numberOfWords')
+#         candidate_name = data.get('candidateFullName')
+#         position_title = data.get('positionTitle')
+#         department = data.get('department')
+#         supervisor = data.get('supervisor')
+#         status = data.get('status')
+#         location = data.get('location')
+#         start_date = data.get('expectedStartDate')
+#         compensation = data.get('compensationPackage')
+#         benefits = data.get('benefits')
+#         work_hours = data.get('workHours')
+#         duration = data.get('duration')
+#         terms = data.get('termsConditions')
+#         acceptance_deadline = data.get('deadline')
+#         contact_info = data.get('contactInfo')
+#         documents_needed = data.get('documentsNeeded')
+#         closing_remarks = data.get('closingRemarks')
+
+#         # Assuming generate_offer_letter is a function that processes the offer letter data
+#         offer_letter_content = generate_offer_letter(
+#             company_details, num_words, candidate_name, position_title, department, supervisor, status,
+#             location, start_date, compensation, benefits, work_hours, duration,
+#             terms, acceptance_deadline, contact_info, documents_needed, closing_remarks
+#         )
+
+#         if offer_letter_content:
+#             # Encrypt the response content
+#             encrypted_content = encrypt_data({'generated_content': offer_letter_content})
+#             return JsonResponse({'encrypted_content': encrypted_content}, status=200)
+
+#         return JsonResponse({'error': 'Failed to generate offer letter. Please try again.'}, status=500)
+
+#     except json.JSONDecodeError:
+#         return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
+#     except ValueError as e:
+#         return JsonResponse({'error': str(e)}, status=400)
+#     except Exception as e:
+#         return JsonResponse({'error': str(e)}, status=500)
+
+#     return JsonResponse({'error': 'Method not allowed.'}, status=405)
+
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def offer_letter_generator(request):
     try:
-        # Extract and decrypt the incoming payload
         encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
         if not encrypted_content:
             return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
@@ -535,33 +696,27 @@ def offer_letter_generator(request):
         data = json.loads(decrypted_content)
 
         company_details = data.get('companyDetails')
-        num_words = data.get('numberOfWords')
         candidate_name = data.get('candidateFullName')
         position_title = data.get('positionTitle')
         department = data.get('department')
-        supervisor = data.get('supervisor')
         status = data.get('status')
         location = data.get('location')
         start_date = data.get('expectedStartDate')
-        compensation = data.get('compensationPackage')
-        benefits = data.get('benefits')
+        compensation_benefits = data.get('compensationBenefits')  # Merged field
         work_hours = data.get('workHours')
-        duration = data.get('duration')
         terms = data.get('termsConditions')
         acceptance_deadline = data.get('deadline')
         contact_info = data.get('contactInfo')
         documents_needed = data.get('documentsNeeded')
         closing_remarks = data.get('closingRemarks')
 
-        # Assuming generate_offer_letter is a function that processes the offer letter data
         offer_letter_content = generate_offer_letter(
-            company_details, num_words, candidate_name, position_title, department, supervisor, status,
-            location, start_date, compensation, benefits, work_hours, duration,
+            company_details,  candidate_name, position_title, department, status,
+            location, start_date, compensation_benefits, work_hours,
             terms, acceptance_deadline, contact_info, documents_needed, closing_remarks
         )
 
         if offer_letter_content:
-            # Encrypt the response content
             encrypted_content = encrypt_data({'generated_content': offer_letter_content})
             return JsonResponse({'encrypted_content': encrypted_content}, status=200)
 
@@ -575,7 +730,6 @@ def offer_letter_generator(request):
         return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
-
 
 
 @login_required
@@ -672,69 +826,6 @@ def change_password(request):
     return JsonResponse({'error': 'Invalid request method.'}, status=405)
 
 
-# # Decorator to specify that this view only accepts POST requests
-# @api_view(['POST'])
-# # Decorator to enforce that the user must be authenticated to access this view
-# @permission_classes([IsAuthenticated])
-# def summarize_document(request):
-#     try:
-#         # Extract and decrypt the incoming payload
-#         # Get the encrypted content from the POST request
-#         encrypted_content = request.POST.get('encrypted_content')
-#         # Check if 'encrypted_content' is not found in the request, return an error response
-#         if not encrypted_content:
-#             return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
-
-#         # Decrypt the content
-#         decrypted_content = decrypt_data(encrypted_content)
-#         # Parse the decrypted content as JSON
-#         data = json.loads(decrypted_content)
-
-#         # Extract data fields from the decrypted JSON data
-#         document_context = data.get('documentContext')
-#         main_subject = data.get('mainSubject')
-#         summary_purpose = data.get('summary_purpose')
-#         length_detail = data.get('length_detail')
-#         important_elements = data.get('important_elements')
-#         audience = data.get('audience')
-#         tone = data.get('tone')
-#         format = data.get('format')
-#         additional_instructions = data.get('additional_instructions')
-#         # Extract the document file from the request
-#         document = request.FILES.get('document')
-
-#         # Call the function to generate the summary with the extracted data
-#         summary_content = generate_summary(
-#             document_context,
-#             main_subject,
-#             summary_purpose,
-#             length_detail,
-#             important_elements,
-#             audience,
-#             tone,
-#             format,
-#             additional_instructions,
-#             document
-#         )
-
-#         # Check if the summary content was successfully generated
-#         if summary_content:
-#             # Encrypt the generated summary content
-#             encrypted_content = encrypt_data({'generated_content': summary_content})
-#             # Return the encrypted content in a JSON response with a 200 OK status
-#             return JsonResponse({'encrypted_content': encrypted_content}, status=200)
-
-#         # If summary generation failed, return an error response
-#         return JsonResponse({'error': 'Failed to generate summary. Please try again.'}, status=500)
-
-#     except Exception as e:
-#         # Handle any exceptions, return an error response with the error message
-#         return JsonResponse({'error': str(e)}, status=500)
-
-#     # Return a method not allowed error if the request method is not POST
-#     return JsonResponse({'error': 'Method not allowed.'}, status=405)
-
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -790,8 +881,6 @@ def summarize_document(request):
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
-
-
 
 
 
@@ -890,11 +979,9 @@ def sales_script_generator(request):
         promotions = data.get('promotions')
         target_audience = data.get('target_audience')
         sales_objectives = data.get('sales_objectives')
-        tone_style = data.get('tone_style')
         competitive_advantage = data.get('competitive_advantage')
-        testimonials = data.get('testimonials')
         compliance = data.get('compliance')
-        tech_integration = data.get('tech_integration')
+
 
         # Call the function to generate the sales script with the extracted data
         sales_script = generate_sales_script(
@@ -906,11 +993,11 @@ def sales_script_generator(request):
             promotions,
             target_audience,
             sales_objectives,
-            tone_style,
+            
             competitive_advantage,
-            testimonials,
+          
             compliance,
-            tech_integration
+          
         )
 
         # Check if the sales script was successfully generated
@@ -944,136 +1031,25 @@ def logout_view(request):
     return JsonResponse({'success': 'Logged out successfully'}, status=200)
 
 
-
-
-
-# @csrf_exempt
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# def generate_slide_titles(request):
-#     try:
-#         encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
-#         if not encrypted_content:
-#             return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
-
-#         decrypted_content = decrypt_data(encrypted_content)
-#         data = json.loads(decrypted_content)
-
-#         title = data.get('title')
-#         num_slides = data.get('num_slides')
-#         special_instructions = data.get('special_instructions')
-
-#         if not title or not num_slides:
-#             return JsonResponse({'error': 'Missing required parameters.'}, status=400)
-
-#         slide_titles = generate_slide_titles(title, num_slides, special_instructions)
-#         encrypted_response = encrypt_data({'slide_titles': slide_titles})
-#         return JsonResponse({'encrypted_content': encrypted_response}, status=200)
-
-#     except json.JSONDecodeError:
-#         return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
-#     except ValueError as e:
-#         return JsonResponse({'error': str(e)}, status=400)
-#     except Exception as e:
-#         return JsonResponse({'error': str(e)}, status=500)
-
-
-# @csrf_exempt
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# def generate_slide_content(request):
-#     try:
-#         encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
-#         if not encrypted_content:
-#             return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
-
-#         decrypted_content = decrypt_data(encrypted_content)
-#         data = json.loads(decrypted_content)
-
-#         st = data.get('st')
-#         title = data.get('title')
-#         special_instructions = data.get('special_instructions')
-
-#         if not st or not title:
-#             return JsonResponse({'error': 'Missing required parameters.'}, status=400)
-
-#         slide_content = generate_slide_content(st, title, special_instructions)
-#         encrypted_response = encrypt_data({'slide_content': slide_content})
-#         return JsonResponse({'encrypted_content': encrypted_response}, status=200)
-
-#     except json.JSONDecodeError:
-#         return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
-#     except ValueError as e:
-#         return JsonResponse({'error': str(e)}, status=400)
-#     except Exception as e:
-#         return JsonResponse({'error': str(e)}, status=500)
-
-
-
-@csrf_exempt
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def add_slide_api(request):
-    try:
-        # Extract and decrypt the incoming payload
-        encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
-        if not encrypted_content:
-            return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
-
-        decrypted_content = decrypt_data(encrypted_content)
-        data = json.loads(decrypted_content)
-
-        # Extract parameters from the request
-        prs_data = data.get('presentation')
-        title = data.get('title')
-        content = data.get('content')
-        bg_image_path = data.get('bgImagePath')
-
-        if not prs_data or not title or not content:
-            return JsonResponse({'error': 'Missing required parameters.'}, status=400)
-
-        # Deserialize the presentation data
-        prs = Presentation(prs_data)
-
-        # Call the add_slide function
-        add_slide(prs, title, content, bg_image_path)
-
-        # Save the presentation to a BytesIO object
-        output = BytesIO()
-        prs.save(output)
-        output.seek(0)
-
-        # Encrypt the response content
-        encrypted_content = encrypt_data(output.read())
-        return JsonResponse({'encrypted_content': encrypted_content}, status=200)
-
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
-    except ValueError as e:
-        return JsonResponse({'error': str(e)}, status=400)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
-    return JsonResponse({'error': 'Method not allowed.'}, status=405)
-
-
-# API With no Encryption and Decryption Logic 
-
 # @csrf_exempt
 # @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 # def create_presentation(request):
 #     try:
-#         # Load the request body and decode it to UTF-8, then parse it as JSON
-#         data = json.loads(request.body.decode('utf-8'))
+#         data = json.loads(request.POST.get('data'))
 
-#         # Extract fields from the JSON data
 #         title = data.get('title')
 #         num_slides = data.get('num_slides')
 #         special_instructions = data.get('special_instructions')
-#         bg_image_path = data.get('bg_image_path', None)
+        
+#         bg_image_file = request.FILES.get('bg_image', None)
 
-#         # Generate the presentation
+#         if bg_image_file:
+#             bg_image_path = default_storage.save(bg_image_file.name, bg_image_file)
+#             bg_image = default_storage.path(bg_image_path)
+#         else:
+#             bg_image = None
+
 #         prs = Presentation()
 #         slide_titles = generate_slide_titles(title, num_slides, special_instructions)
 #         slide_titles = slide_titles.replace('[', '').replace(']', '').replace('"', '').split(',')
@@ -1088,19 +1064,17 @@ def add_slide_api(request):
 #             for point in slide_content:
 #                 current_content.append(point.strip())
 #                 if len(current_content) >= max_points_per_slide:
-#                     add_slide(prs, st if slide_count == 1 else f"{st} (contd.)", current_content, bg_image_path)
+#                     add_slide(prs, st if slide_count == 1 else f"{st} (contd.)", current_content, bg_image)
 #                     current_content = []
 #                     slide_count += 1
 
 #             if current_content:
-#                 add_slide(prs, st if slide_count == 1 else f"{st} (contd.)", current_content, bg_image_path)
+#                 add_slide(prs, st if slide_count == 1 else f"{st} (contd.)", current_content, bg_image)
 
-#         # Save the presentation to a BytesIO object
 #         pptx_buffer = BytesIO()
 #         prs.save(pptx_buffer)
 #         pptx_buffer.seek(0)
 
-#         # Create a response with the appropriate content type and headers for a file download
 #         response = HttpResponse(pptx_buffer, content_type='application/vnd.openxmlformats-officedocument.presentationml.presentation')
 #         response['Content-Disposition'] = 'attachment; filename="SmartOffice_Assistant_Presentation.pptx"'
 
@@ -1120,22 +1094,27 @@ def add_slide_api(request):
 @permission_classes([IsAuthenticated])
 def create_presentation(request):
     try:
-        # Extract and decrypt the incoming payload
-        encrypted_content = request.POST.get('encrypted_content')
-        if not encrypted_content:
-            return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
+        data = json.loads(request.POST.get('data'))
 
-        # Decrypt the content
-        decrypted_content = decrypt_data(encrypted_content)
-        data = json.loads(decrypted_content)
-
-        # Extract fields from the decrypted JSON data
         title = data.get('title')
         num_slides = data.get('num_slides')
         special_instructions = data.get('special_instructions')
-        bg_image_path = data.get('bg_image_path', None)
+        
+        bg_image_file = request.FILES.get('bg_image', None)
+        document_file = request.FILES.get('document', None)
 
-        # Generate the presentation
+        if bg_image_file:
+            bg_image_path = default_storage.save(bg_image_file.name, bg_image_file)
+            bg_image = default_storage.path(bg_image_path)
+        else:
+            bg_image = None
+
+        if document_file:
+            document_path = default_storage.save(document_file.name, document_file)
+            document_content = extract_document_content(default_storage.path(document_path))
+        else:
+            document_content = None
+
         prs = Presentation()
         slide_titles = generate_slide_titles(title, num_slides, special_instructions)
         slide_titles = slide_titles.replace('[', '').replace(']', '').replace('"', '').split(',')
@@ -1143,30 +1122,25 @@ def create_presentation(request):
         max_points_per_slide = 4
 
         for st in slide_titles:
-            slide_content = generate_slide_content(st, title, special_instructions).replace("*", '').split('\n')
+            slide_content = generate_slide_content(st, title, special_instructions, document_content).replace("*", '').split('\n')
             current_content = []
             slide_count = 1
 
             for point in slide_content:
                 current_content.append(point.strip())
                 if len(current_content) >= max_points_per_slide:
-                    add_slide(prs, st if slide_count == 1 else f"{st} (contd.)", current_content, bg_image_path)
+                    add_slide(prs, st if slide_count == 1 else f"{st} (contd.)", current_content, bg_image)
                     current_content = []
                     slide_count += 1
 
             if current_content:
-                add_slide(prs, st if slide_count == 1 else f"{st} (contd.)", current_content, bg_image_path)
+                add_slide(prs, st if slide_count == 1 else f"{st} (contd.)", current_content, bg_image)
 
-        # Save the presentation to a BytesIO object
         pptx_buffer = BytesIO()
         prs.save(pptx_buffer)
         pptx_buffer.seek(0)
 
-        # Encrypt the response content
-        encrypted_content = encrypt_data(pptx_buffer.read())
-
-        # Create a response with the appropriate content type and headers for a file download
-        response = HttpResponse(encrypted_content, content_type='application/vnd.openxmlformats-officedocument.presentationml.presentation')
+        response = HttpResponse(pptx_buffer, content_type='application/vnd.openxmlformats-officedocument.presentationml.presentation')
         response['Content-Disposition'] = 'attachment; filename="SmartOffice_Assistant_Presentation.pptx"'
 
         return response
@@ -1179,4 +1153,5 @@ def create_presentation(request):
         return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
+
 
