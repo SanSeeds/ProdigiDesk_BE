@@ -1024,6 +1024,7 @@ def sales_script_generator(request):
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
 
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def logout_view(request):
@@ -1031,63 +1032,6 @@ def logout_view(request):
     return JsonResponse({'success': 'Logged out successfully'}, status=200)
 
 
-# @csrf_exempt
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# def create_presentation(request):
-#     try:
-#         data = json.loads(request.POST.get('data'))
-
-#         title = data.get('title')
-#         num_slides = data.get('num_slides')
-#         special_instructions = data.get('special_instructions')
-        
-#         bg_image_file = request.FILES.get('bg_image', None)
-
-#         if bg_image_file:
-#             bg_image_path = default_storage.save(bg_image_file.name, bg_image_file)
-#             bg_image = default_storage.path(bg_image_path)
-#         else:
-#             bg_image = None
-
-#         prs = Presentation()
-#         slide_titles = generate_slide_titles(title, num_slides, special_instructions)
-#         slide_titles = slide_titles.replace('[', '').replace(']', '').replace('"', '').split(',')
-
-#         max_points_per_slide = 4
-
-#         for st in slide_titles:
-#             slide_content = generate_slide_content(st, title, special_instructions).replace("*", '').split('\n')
-#             current_content = []
-#             slide_count = 1
-
-#             for point in slide_content:
-#                 current_content.append(point.strip())
-#                 if len(current_content) >= max_points_per_slide:
-#                     add_slide(prs, st if slide_count == 1 else f"{st} (contd.)", current_content, bg_image)
-#                     current_content = []
-#                     slide_count += 1
-
-#             if current_content:
-#                 add_slide(prs, st if slide_count == 1 else f"{st} (contd.)", current_content, bg_image)
-
-#         pptx_buffer = BytesIO()
-#         prs.save(pptx_buffer)
-#         pptx_buffer.seek(0)
-
-#         response = HttpResponse(pptx_buffer, content_type='application/vnd.openxmlformats-officedocument.presentationml.presentation')
-#         response['Content-Disposition'] = 'attachment; filename="SmartOffice_Assistant_Presentation.pptx"'
-
-#         return response
-
-#     except json.JSONDecodeError:
-#         return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
-#     except ValueError as e:
-#         return JsonResponse({'error': str(e)}, status=400)
-#     except Exception as e:
-#         return JsonResponse({'error': str(e)}, status=500)
-
-#     return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
 @csrf_exempt
 @api_view(['POST'])
