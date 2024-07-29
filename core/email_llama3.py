@@ -19,9 +19,13 @@ BHASHINI_API_KEY = settings.BHASHINI_API_KEY
 BHASHINI_USER_ID = settings.BHASHINI_USER_ID
 
 # Function to check for inappropriate language
+# def contains_inappropriate_language(text: str) -> bool:
+#     inappropriate_words = ["stupid", "idiot", "badword3"]
+#     return any(word in text.lower() for word in inappropriate_words)
+
+# Function to check for inappropriate language
 def contains_inappropriate_language(text: str) -> bool:
-    inappropriate_words = ["stupid", "idiot", "badword3"]
-    return any(word in text.lower() for word in inappropriate_words)
+    return profanity.contains_profanity(text)
 
 # Function to sanitize input containing inappropriate words
 def sanitize_input(input_str):
@@ -103,193 +107,109 @@ def generate_email(purpose, num_words, subject, rephrase, to, tone, keywords, co
     return chat_completion.choices[0].message.content
 
 
-# #text = generate_email("confirm details", "100", "Require Contact Details","Y" ,"client", "formal", "SPOC, AI, contract, project, deadline, payment", "Had a conversation with VP last week regarding an AI project on contract basis. Looking for further updates","meeting","","High","")
-# def generate_bus_pro(business_intro, proposal_objective, num_words, scope_of_work, project_phases, expected_outcomes, innovative_approaches, technologies_used, target_audience,budget_info,timeline,benefits, closing_remarks):
-#     prompt = f"Generate an business proposal of maximum {num_words} words, given the following inputs: "
-#     if business_intro:
-#         prompt = prompt+ "\n" + f"Our business details are {business_intro}, "
-#     if proposal_objective:
-#         prompt = prompt+ "\n" + f"and the purpose of this proposal is {proposal_objective}, "
-#     if scope_of_work:
-#         prompt = prompt + "\n"+ f"Define the scope of work as {scope_of_work}. "
-#     if project_phases:
-#         prompt = prompt+ "\n" + f"The project will be done in the following phases: {project_phases}. "
-#     if expected_outcomes:
-#         prompt = prompt + "\n"+f"Reprise the client of these expected outcomes: {expected_outcomes}. "
-#     if innovative_approaches:
-#         prompt = prompt + "\n"+f"Mention our following innovative approach: {innovative_approaches}, "
-#     if technologies_used:
-#         prompt = prompt + "\n"+f"and following technologies_used: {technologies_used}. "
-#     if budget_info:
-#         prompt = prompt + "\n"+f"Incorporate this budget_info: {budget_info}. "
-#     if target_audience:
-#         prompt = prompt + "\n"+f"Bear in mind that the target_audience is: {target_audience}. "
-#     if timeline:
-#         prompt = prompt + "\n"+f"The timelines we hope to stick to is : {timeline}. "
-#     if benefits:
-#         prompt = prompt + "\n"+f"Incorporate into the proposal the following benefits : {benefits}. "
-#     if closing_remarks:
-#         prompt = prompt+ "\n" + f"Incorporate the following closing remarks {closing_remarks}. "
-
-#     client = Groq(
-#         api_key=GROQ_SECRET_ACCESS_KEY   #os.environ.get("GROQ_API_KEY"),
-#     )
-
-#     chat_completion = client.chat.completions.create(
-#         messages=[
-#             {
-#                 "role": "user",
-#                 "content": prompt,
-#             }
-#         ],
-#         model="llama3-70b-8192",
-#     )
-
-#     # print(chat_completion.choices[0].message.content)
-#     return(chat_completion.choices[0].message.content)
-
-
-
 def generate_bus_pro(business_intro, proposal_objective, num_words, scope_of_work, project_phases, expected_outcomes, tech_innovations, target_audience, budget_info, timeline, benefits, closing_remarks):
+    # Collect all fields to check for inappropriate language
+    fields_to_check = [business_intro, proposal_objective, scope_of_work, project_phases, expected_outcomes, tech_innovations, target_audience, budget_info, timeline, benefits, closing_remarks]
+    
+    # Check if any field contains inappropriate language
+    if any(contains_inappropriate_language(str(field)) for field in fields_to_check if field is not None):
+        return "Error: Input contains inappropriate language."
+    
+    # Sanitize input (if needed)
+    sanitized_fields = [sanitize_input(str(field)) if field else '' for field in fields_to_check]
+
+    # Reconstruct the prompt with sanitized input
     prompt = f"Generate a business proposal of maximum {num_words} words, given the following inputs: "
-    if business_intro:
-        prompt += f"Our business details are {business_intro}, "
-    if proposal_objective:
-        prompt += f"and the purpose of this proposal is {proposal_objective}, "
-    if scope_of_work:
-        prompt += f"Define the scope of work as {scope_of_work}. "
-    if project_phases:
-        prompt += f"The project will be done in the following phases: {project_phases}. "
-    if expected_outcomes:
-        prompt += f"Reprise the client of these expected outcomes: {expected_outcomes}. "
-    if tech_innovations:
-        prompt += f"Mention our following technologies and innovative approaches: {tech_innovations}. "
-    if target_audience:
-        prompt += f"Bear in mind that the target audience is: {target_audience}. "
-    if budget_info:
-        prompt += f"Incorporate this budget info: {budget_info}. "
-    if timeline:
-        prompt += f"The timelines we hope to stick to are: {timeline}. "
-    if benefits:
-        prompt += f"Incorporate into the proposal the following benefits: {benefits}. "
-    if closing_remarks:
-        prompt += f"Incorporate the following closing remarks: {closing_remarks}. "
+    if sanitized_fields[0]:
+        prompt += f"Our business details are {sanitized_fields[0]}, "
+    if sanitized_fields[1]:
+        prompt += f"and the purpose of this proposal is {sanitized_fields[1]}, "
+    if sanitized_fields[2]:
+        prompt += f"Define the scope of work as {sanitized_fields[2]}. "
+    if sanitized_fields[3]:
+        prompt += f"The project will be done in the following phases: {sanitized_fields[3]}. "
+    if sanitized_fields[4]:
+        prompt += f"Reprise the client of these expected outcomes: {sanitized_fields[4]}. "
+    if sanitized_fields[5]:
+        prompt += f"Mention our following technologies and innovative approaches: {sanitized_fields[5]}. "
+    if sanitized_fields[6]:
+        prompt += f"Bear in mind that the target audience is: {sanitized_fields[6]}. "
+    if sanitized_fields[7]:
+        prompt += f"Incorporate this budget info: {sanitized_fields[7]}. "
+    if sanitized_fields[8]:
+        prompt += f"The timelines we hope to stick to are: {sanitized_fields[8]}. "
+    if sanitized_fields[9]:
+        prompt += f"Incorporate into the proposal the following benefits: {sanitized_fields[9]}. "
+    if sanitized_fields[10]:
+        prompt += f"Incorporate the following closing remarks: {sanitized_fields[10]}. "
 
-    client = Groq(
-        api_key=GROQ_SECRET_ACCESS_KEY,
-    )
-
+    client = Groq(api_key=GROQ_SECRET_ACCESS_KEY)
     chat_completion = client.chat.completions.create(
-        messages=[
-            {
-                "role": "user",
-                "content": prompt,
-            }
-        ],
-        model="llama3-70b-8192",
+        messages=[{"role": "user", "content": prompt}],
+        model="llama3-70b-8192"
     )
 
     return chat_completion.choices[0].message.content
 
-
-# def generate_offer_letter(company_details,num_words, candidate_name, position_title, department, supervisor, status,location,
-#                           start_date, compensation, benefits, work_hours, duration,terms, acceptance_deadline,
-#                           contact_info, documents_needed, closing_remarks):
-#     prompt = f"Generate an offer letter of maximum {num_words} words, given the following inputs: "
-#     if company_details:
-#         prompt = prompt+ "\n" + f"Our business details are {company_details}, "
-#     if candidate_name:
-#         prompt = prompt+ "\n" + f"Candidate name is {candidate_name}, "
-#     if position_title:
-#         prompt = prompt + "\n"+ f"for the position of {position_title}, "
-#     if department:
-#         prompt = prompt+ "\n" + f"in the department: {department}, "
-#     if supervisor:
-#         prompt = prompt + "\n"+f"under the supervisor: {supervisor}. "
-#     if status:
-#         prompt = prompt + "\n"+f"as a {status} employee. "
-#     if location:
-#         prompt = prompt + "\n"+f"Expected to work from: {location}. "
-#     if start_date:
-#         prompt = prompt + "\n"+f"Candidate to join on {start_date}. "
-#     if compensation:
-#         prompt = prompt + "\n"+f"Candidate will be given a compensation of: {compensation}. "
-#     if benefits:
-#         prompt = prompt + "\n"+f"Added to the compensation there will be following benefits : {benefits}. "
-#     if work_hours:
-#         prompt = prompt + "\n"+f"Expected working hours : {work_hours}. "
-#     if duration:
-#         prompt = prompt + "\n"+f"for a duration of: {duration}. "
-#     if terms:
-#         prompt = prompt + "\n"+f"Following are the terms of offer: {terms}. "
-#     if acceptance_deadline:
-#         prompt = prompt + "\n"+f"the last day for accepting the offer is: {acceptance_deadline}. "
-#     if contact_info:
-#         prompt = prompt + "\n"+f"In case of any queries contact : {contact_info}. "
-#     if documents_needed:
-#         prompt = prompt + "\n"+f"Following documents to be produced on the day of joining: {documents_needed}. "
-
-#     if closing_remarks:
-#         prompt = prompt+ "\n" + f"Incorporate the following closing remarks in the offer letter {closing_remarks}. "
-
-#     client = Groq(
-#         api_key=GROQ_SECRET_ACCESS_KEY   #os.environ.get("GROQ_API_KEY"),
-#     )
-
-#     chat_completion = client.chat.completions.create(
-#         messages=[
-#             {
-#                 "role": "user",
-#                 "content": prompt,
-#             }
-#         ],
-#         model="llama3-70b-8192",
-#     )
-
-#     # print(chat_completion.choices[0].message.content)
-#     return(chat_completion.choices[0].message.content)
 
 def generate_offer_letter(company_details, candidate_name, position_title, department, status, location,
                           start_date, compensation_benefits, work_hours, terms, acceptance_deadline,
                           contact_info, documents_needed, closing_remarks):
-    # Start building the prompt
-    prompt = "Generate an offer letter given the following inputs: "
+    # Collect all fields to check for inappropriate language
+    fields_to_check = [
+        company_details, candidate_name, position_title, department, status, location,
+        start_date, compensation_benefits, work_hours, terms, acceptance_deadline,
+        contact_info, documents_needed, closing_remarks
+    ]
     
-    if company_details:
-        prompt += f"\nOur business details are {company_details}, "
-    if candidate_name:
-        prompt += f"\nCandidate name is {candidate_name}, "
-    if position_title:
-        prompt += f"\nfor the position of {position_title}, "
-    if department:
-        prompt += f"\nin the department: {department}, "
-    if status:
-        prompt += f"\nas a {status} employee. "
-    if location:
-        prompt += f"\nExpected to work from: {location}. "
-    if start_date:
-        prompt += f"\nCandidate to join on {start_date}. "
-    if compensation_benefits:
-        prompt += f"\nCandidate will receive the following compensation and benefits: {compensation_benefits}. "
-    if work_hours:
-        prompt += f"\nExpected working hours: {work_hours}. "
-    if terms:
-        prompt += f"\nFollowing are the terms of the offer: {terms}. "
-    if acceptance_deadline:
-        prompt += f"\nThe last day for accepting the offer is: {acceptance_deadline}. "
-    if contact_info:
-        prompt += f"\nIn case of any queries contact: {contact_info}. "
-    if documents_needed:
-        prompt += f"\nFollowing documents to be produced on the day of joining: {documents_needed}. "
-    if closing_remarks:
-        prompt += f"\nIncorporate the following closing remarks in the offer letter: {closing_remarks}. "
+    # Check if any field contains inappropriate language
+    inappropriate_key = None
+    inappropriate_value = None
+    for value in fields_to_check:
+        if value and contains_inappropriate_language(value):
+            inappropriate_key = value
+            inappropriate_value = value
+            break
 
-    # Initialize client with API key
-    client = Groq(
-        api_key=GROQ_SECRET_ACCESS_KEY   # os.environ.get("GROQ_API_KEY"),
-    )
+    if inappropriate_key:
+        return f"This type of language is not allowed in the input: {inappropriate_value}"
 
-    # Create chat completion with the prompt
+    # Sanitize input fields
+    sanitized_fields = [sanitize_input(str(field)) if field else '' for field in fields_to_check]
+
+    # Build the prompt with sanitized inputs
+    prompt = "Generate an offer letter given the following inputs: "
+    if sanitized_fields[0]:
+        prompt += f"\nOur business details are {sanitized_fields[0]}, "
+    if sanitized_fields[1]:
+        prompt += f"\nCandidate name is {sanitized_fields[1]}, "
+    if sanitized_fields[2]:
+        prompt += f"\nfor the position of {sanitized_fields[2]}, "
+    if sanitized_fields[3]:
+        prompt += f"\nin the department: {sanitized_fields[3]}, "
+    if sanitized_fields[4]:
+        prompt += f"\nas a {sanitized_fields[4]} employee. "
+    if sanitized_fields[5]:
+        prompt += f"\nExpected to work from: {sanitized_fields[5]}. "
+    if sanitized_fields[6]:
+        prompt += f"\nCandidate to join on {sanitized_fields[6]}. "
+    if sanitized_fields[7]:
+        prompt += f"\nCandidate will receive the following compensation and benefits: {sanitized_fields[7]}. "
+    if sanitized_fields[8]:
+        prompt += f"\nExpected working hours: {sanitized_fields[8]}. "
+    if sanitized_fields[9]:
+        prompt += f"\nFollowing are the terms of the offer: {sanitized_fields[9]}. "
+    if sanitized_fields[10]:
+        prompt += f"\nThe last day for accepting the offer is: {sanitized_fields[10]}. "
+    if sanitized_fields[11]:
+        prompt += f"\nIn case of any queries contact: {sanitized_fields[11]}. "
+    if sanitized_fields[12]:
+        prompt += f"\nFollowing documents to be produced on the day of joining: {sanitized_fields[12]}. "
+    if sanitized_fields[13]:
+        prompt += f"\nIncorporate the following closing remarks in the offer letter: {sanitized_fields[13]}. "
+
+    client = Groq(api_key=GROQ_SECRET_ACCESS_KEY)
+
     chat_completion = client.chat.completions.create(
         messages=[
             {
@@ -300,51 +220,83 @@ def generate_offer_letter(company_details, candidate_name, position_title, depar
         model="llama3-70b-8192",
     )
 
-    # Return the generated content
     return chat_completion.choices[0].message.content
 
 
+
 def generate_summary(document_context, main_subject, summary_purpose, length_detail, important_elements, audience, tone, format, additional_instructions, document):
-    prompt = f"Generate a summary of the given document {document} given the following inputs: "
-    if document:
-    #     prompt = prompt + "\n"+f"Added to the compensation there will be following benefits : {document}. "
-        if document_context:
-            prompt = prompt+ "\n" + f"Context of document: {document_context}, "
-        if main_subject:
-            prompt = prompt+ "\n" + f"Main subject: {main_subject}, "
-        if summary_purpose:
-            prompt = prompt + "\n"+ f"Purpose of generating summary {summary_purpose}, "
-        if length_detail:
-            prompt = prompt+ "\n" + f"Level of detail: {length_detail}, "
-        if important_elements:
-            prompt = prompt + "\n"+f"Important elements: {important_elements}. "
-        if audience:
-            prompt = prompt + "\n"+f"Target audience:{audience}. "
-        if tone:
-            prompt = prompt + "\n"+f"Expected tone: {tone}. "
-        if format:
-            prompt = prompt + "\n"+f"Expected format {format}. "
-        if additional_instructions:
-            prompt = prompt + "\n"+f"Additional Instructions: {additional_instructions}. "
+    # Collect all fields to check for inappropriate language
+    fields_to_check = [
+        document_context, main_subject, summary_purpose, length_detail, important_elements, 
+        audience, tone, format, additional_instructions, document
+    ]
+    
+    # Check if any field contains inappropriate language
+    inappropriate_key = None
+    inappropriate_value = None
+    for value in fields_to_check:
+        if value and contains_inappropriate_language(value):
+            inappropriate_key = value
+            inappropriate_value = value
+            break
 
-        client = Groq(
-            api_key=GROQ_SECRET_ACCESS_KEY   #os.environ.get("GROQ_API_KEY"),
-        )
+    if inappropriate_key:
+        return f"This type of language is not allowed in the input: {inappropriate_value}"
 
-        chat_completion = client.chat.completions.create(
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt,
-                }
-            ],
-            model="llama3-70b-8192",
-        )
+    # Sanitize input fields
+    sanitized_fields = { 
+        "document_context": sanitize_input(str(document_context)) if document_context else '',
+        "main_subject": sanitize_input(str(main_subject)) if main_subject else '',
+        "summary_purpose": sanitize_input(str(summary_purpose)) if summary_purpose else '',
+        "length_detail": sanitize_input(str(length_detail)) if length_detail else '',
+        "important_elements": sanitize_input(str(important_elements)) if important_elements else '',
+        "audience": sanitize_input(str(audience)) if audience else '',
+        "tone": sanitize_input(str(tone)) if tone else '',
+        "format": sanitize_input(str(format)) if format else '',
+        "additional_instructions": sanitize_input(str(additional_instructions)) if additional_instructions else '',
+        "document": sanitize_input(str(document)) if document else ''
+    }
 
-        # print(chat_completion.choices[0].message.content)
-        return(chat_completion.choices[0].message.content)
-    else:
-        return("Error: Attach Document!!")
+    # Build the prompt with sanitized inputs
+    prompt = f"Generate a summary of the given document {sanitized_fields['document']} given the following inputs: "
+    if sanitized_fields['document_context']:
+        prompt += f"\nContext of document: {sanitized_fields['document_context']}, "
+    if sanitized_fields['main_subject']:
+        prompt += f"\nMain subject: {sanitized_fields['main_subject']}, "
+    if sanitized_fields['summary_purpose']:
+        prompt += f"\nPurpose of generating summary: {sanitized_fields['summary_purpose']}, "
+    if sanitized_fields['length_detail']:
+        prompt += f"\nLevel of detail: {sanitized_fields['length_detail']}, "
+    if sanitized_fields['important_elements']:
+        prompt += f"\nImportant elements: {sanitized_fields['important_elements']}. "
+    if sanitized_fields['audience']:
+        prompt += f"\nTarget audience: {sanitized_fields['audience']}. "
+    if sanitized_fields['tone']:
+        prompt += f"\nExpected tone: {sanitized_fields['tone']}. "
+    if sanitized_fields['format']:
+        prompt += f"\nExpected format: {sanitized_fields['format']}. "
+    if sanitized_fields['additional_instructions']:
+        prompt += f"\nAdditional Instructions: {sanitized_fields['additional_instructions']}. "
+
+    if not sanitized_fields['document']:
+        return "Error: Attach Document!!"
+
+    client = Groq(api_key=GROQ_SECRET_ACCESS_KEY)
+
+    chat_completion = client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+        model="llama3-70b-8192",
+    )
+
+
+    return chat_completion.choices[0].message.content
+
+
 
 
 # Function to generate content based on provided parameters
@@ -361,11 +313,9 @@ def generate_content(company_info, content_purpose, desired_action, topic_detail
         "references": references
     }
 
-    # Initialize inappropriate_key and inappropriate_value to None
+    # Check if any input parameter contains inappropriate words
     inappropriate_key = None
     inappropriate_value = None
-
-    # Check if any input parameter contains inappropriate words
     for key, value in inputs.items():
         if value and contains_inappropriate_language(value):
             inappropriate_key = key
@@ -375,27 +325,30 @@ def generate_content(company_info, content_purpose, desired_action, topic_detail
     if inappropriate_key:
         return f"This type of language is not allowed in {inappropriate_key}: '{inappropriate_value}'."
 
+    # Sanitize input fields
+    sanitized_inputs = {key: sanitize_input(value) if value else '' for key, value in inputs.items()}
+
     # Construct the prompt for content generation
     prompt = f"Generate high-quality, engaging content of maximum {num_words} words with the following details:\n"
 
-    if company_info:
-        prompt += f"Company Information: {sanitize_input(company_info)}\n"
-    if content_purpose:
-        prompt += f"Purpose of Content: {sanitize_input(content_purpose)}\n"
-    if desired_action:
-        prompt += f"Desired Action: {sanitize_input(desired_action)}\n"
-    if topic_details:
-        prompt += f"Topic Details: {sanitize_input(topic_details)}\n"
-    if keywords:
-        prompt += f"Keywords: {sanitize_input(keywords)}\n"
-    if audience_profile:
-        prompt += f"Audience Profile: {sanitize_input(audience_profile)}\n"
-    if format_structure:
-        prompt += f"Format and Structure: {sanitize_input(format_structure)}\n"
-    if seo_keywords:
-        prompt += f"SEO Keywords: {sanitize_input(seo_keywords)}\n"
-    if references:
-        prompt += f"References to Cite: {sanitize_input(references)}\n"
+    if sanitized_inputs['company_info']:
+        prompt += f"Company Information: {sanitized_inputs['company_info']}\n"
+    if sanitized_inputs['content_purpose']:
+        prompt += f"Purpose of Content: {sanitized_inputs['content_purpose']}\n"
+    if sanitized_inputs['desired_action']:
+        prompt += f"Desired Action: {sanitized_inputs['desired_action']}\n"
+    if sanitized_inputs['topic_details']:
+        prompt += f"Topic Details: {sanitized_inputs['topic_details']}\n"
+    if sanitized_inputs['keywords']:
+        prompt += f"Keywords: {sanitized_inputs['keywords']}\n"
+    if sanitized_inputs['audience_profile']:
+        prompt += f"Audience Profile: {sanitized_inputs['audience_profile']}\n"
+    if sanitized_inputs['format_structure']:
+        prompt += f"Format and Structure: {sanitized_inputs['format_structure']}\n"
+    if sanitized_inputs['seo_keywords']:
+        prompt += f"SEO Keywords: {sanitized_inputs['seo_keywords']}\n"
+    if sanitized_inputs['references']:
+        prompt += f"References to Cite: {sanitized_inputs['references']}\n"
 
     # Additional instructions for the content creation
     prompt += (
@@ -423,6 +376,7 @@ def generate_content(company_info, content_purpose, desired_action, topic_detail
 
     return chat_completion.choices[0].message.content
 
+
 def generate_sales_script(company_details, num_words, product_descriptions, features_benefits, pricing_info, promotions, target_audience, sales_objectives,
                           competitive_advantage, compliance):
     inputs = {
@@ -435,7 +389,7 @@ def generate_sales_script(company_details, num_words, product_descriptions, feat
         "Sales Objectives": sales_objectives,
         "Competitive Advantage": competitive_advantage,
         "Compliance": compliance,
-        "Number Of Words" : num_words
+        "Number Of Words": num_words
     }
 
     # Check if any input parameter contains inappropriate words
@@ -450,10 +404,13 @@ def generate_sales_script(company_details, num_words, product_descriptions, feat
     if inappropriate_key:
         return f"This type of language is not allowed in {inappropriate_key}: {inappropriate_value}"
 
+    # Sanitize input fields
+    sanitized_inputs = {key: sanitize_input(value) if value else '' for key, value in inputs.items()}
+
     # Build the prompt for generating the sales script
-    prompt = f"Generate a sales script of maximum {num_words} words, given the following inputs: "
-    for key, value in inputs.items():
-        if value:
+    prompt = f"Generate a sales script of maximum {sanitized_inputs['Number Of Words']} words, given the following inputs: "
+    for key, value in sanitized_inputs.items():
+        if key != 'Number Of Words' and value:
             prompt += f"\n- {key}: {value}"
 
     prompt += (
@@ -477,9 +434,6 @@ def generate_sales_script(company_details, num_words, product_descriptions, feat
     )
 
     return chat_completion.choices[0].message.content
-
-
-
 
 
 def bhashini_translate(text: str,  to_code: str = "Hindi", from_code: str = "English",user_id: str=BHASHINI_USER_ID, api_key: str=BHASHINI_API_KEY) -> dict:
@@ -564,9 +518,6 @@ def bhashini_translate(text: str,  to_code: str = "Hindi", from_code: str = "Eng
 
     return {"status_code": 200, "message": "Translation successful", "translated_content": translated_content}
 
-
-#print(bhashini_translate(text))
-#translate_generated_text(text,"French")
 
 def generate_slide_titles(title, num_slides, special_instructions):
     prompt = f"Generate titles for {num_slides} slides on the subject {title}. "
@@ -673,12 +624,6 @@ def create_presentation(title, num_slides, special_instructions, bg_image):
             add_slide(prs, st if slide_count == 1 else f"{st} (contd.)", current_content, bg_image)
 
     return prs
-
-
-
-
-
-
 
 
 def extract_document_content(file_path):
