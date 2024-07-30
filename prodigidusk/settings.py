@@ -4,6 +4,10 @@ from pathlib import Path
 from corsheaders.defaults import default_headers
 from django.conf import settings
 from decouple import config
+import logging
+import logging.config
+from logging.handlers import TimedRotatingFileHandler
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -34,7 +38,64 @@ ENCRYPTION_SECRET_KEY = config('ENCRYPTION_SECRET_KEY_b64')
 DEBUG = True
 
 
-ALLOWED_HOSTS = []
+LOGGING = {
+    'version': 1,  # Specifies the version of the logging configuration schema
+    'disable_existing_loggers': False,  # Prevents existing loggers from being disabled
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',  # Defines the format of the log message
+            'style': '{',  # Uses str.format() style for formatting
+        },
+        'simple': {
+            'format': '{levelname} {message}',  # Defines a simpler format for log messages
+            'style': '{',  # Uses str.format() style for formatting
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',  # Sets the minimum log level to DEBUG for this handler
+            'class': 'logging.handlers.TimedRotatingFileHandler',  # Specifies the handler class for rotating logs based on time
+            'filename': os.path.join(BASE_DIR, 'django_debug.log'),  # Defines the log file location
+            'formatter': 'verbose',  # Uses the 'verbose' formatter for this handler
+            'when': 'D',  # Rotates the log file daily
+            'interval': 1,  # Interval of 1 day for rotation
+            'backupCount': 2,  # Keeps logs for the last 60 days (2 month)
+        },
+        'console': {
+            'level': 'DEBUG',  # Sets the minimum log level to DEBUG for this handler
+            'class': 'logging.StreamHandler',  # Specifies the handler class for logging to the console
+            'formatter': 'simple',  # Uses the 'simple' formatter for this handler
+        },
+      
+    },
+    'root': {
+        'handlers': ['file', 'console'],  # Specifies the handlers for the root logger
+        'level': 'DEBUG',  # Sets the minimum log level for the root logger to DEBUG
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console'],  # Specifies the handlers for the 'django' logger
+            'level': 'DEBUG',  # Sets the minimum log level for the 'django' logger to DEBUG
+            'propagate': True,  # Allows log messages to propagate to the parent (root) logger
+        },
+        'django.request': {
+            'handlers': ['file', 'console'],  # Specifies the handlers for the 'django.request' logger
+            'level': 'ERROR',  # Sets the minimum log level for the 'django.request' logger to ERROR
+            'propagate': False,  # Prevents log messages from propagating to the parent logger
+        },
+        'django.security': {
+            'handlers': ['file', 'console'],  # Specifies the handlers for the 'django.security' logger
+            'level': 'ERROR',  # Sets the minimum log level for the 'django.security' logger to ERROR
+            'propagate': False,  # Prevents log messages from propagating to the parent logger
+        },
+        'django.utils.autoreload': {
+            'handlers': ['file', 'console'],  # Specifies the handlers for the 'django.utils.autoreload' logger
+            'level': 'INFO',  # Sets the minimum log level for the 'django.utils.autoreload' logger to INFO to suppress DEBUG logs
+            'propagate': False,  # Prevents log messages from propagating to the parent logger
+        },
+    },
+}
+
 
 # #AUTH_USER_MODEL = 'core.Profile'
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -186,9 +247,11 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
 
-# Set maximum file upload size (e.g., 5MB)
-DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5MB
+# Maximum size (in bytes) that a request can be before a SuspiciousOperation (TooBig) is raised
+DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600  # 100 MB
 
+# Maximum size (in bytes) that a file can be before being rolled over to the file system
+FILE_UPLOAD_MAX_MEMORY_SIZE = 104857600  # 100 MB
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
