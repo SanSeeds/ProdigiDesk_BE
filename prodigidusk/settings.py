@@ -4,8 +4,13 @@ from pathlib import Path
 from corsheaders.defaults import default_headers
 from django.conf import settings
 from decouple import config
+import logging
+import logging.config
+from logging.handlers import TimedRotatingFileHandler
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Static files (CSS, JavaScript, Images)
@@ -31,10 +36,81 @@ ENCRYPTION_SECRET_KEY = config('ENCRYPTION_SECRET_KEY_b64')
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 
-ALLOWED_HOSTS = []
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'django_debug.log'),
+            'formatter': 'verbose',
+            'when': 'D',
+            'interval': 1,
+            'backupCount': 2,
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'audit_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'audit.log'),
+            'formatter': 'verbose',
+            'when': 'D',
+            'interval': 1,
+            'backupCount': 60,
+        },
+    },
+    'root': {
+        'handlers': ['file', 'console'],
+        'level': 'DEBUG',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['file', 'console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['file', 'console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.utils.autoreload': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'audit': {
+            'handlers': ['audit_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
+
 
 # #AUTH_USER_MODEL = 'core.Profile'
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -88,6 +164,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.api_logging_middleware.APILoggingMiddleware'
 ]
 
 
@@ -186,9 +263,11 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
 
-# Set maximum file upload size (e.g., 5MB)
-DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5MB
+# Maximum size (in bytes) that a request can be before a SuspiciousOperation (TooBig) is raised
+DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600  # 100 MB
 
+# Maximum size (in bytes) that a file can be before being rolled over to the file system
+FILE_UPLOAD_MAX_MEMORY_SIZE = 104857600  # 100 MB
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
