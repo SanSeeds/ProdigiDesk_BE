@@ -101,7 +101,7 @@ def generate_email(purpose, num_words, subject, rephrase, to, tone, keywords, co
     client = Groq(api_key=GROQ_SECRET_ACCESS_KEY)
     chat_completion = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
-        model="llama3-70b-8192"
+        model="llama-3.1-70b-versatile",
     )
     
     return chat_completion.choices[0].message.content
@@ -146,7 +146,7 @@ def generate_bus_pro(business_intro, proposal_objective, num_words, scope_of_wor
     client = Groq(api_key=GROQ_SECRET_ACCESS_KEY)
     chat_completion = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
-        model="llama3-70b-8192"
+        model="llama-3.1-70b-versatile",
     )
 
     return chat_completion.choices[0].message.content
@@ -217,7 +217,7 @@ def generate_offer_letter(company_details, candidate_name, position_title, depar
                 "content": prompt,
             }
         ],
-        model="llama3-70b-8192",
+        model="llama-3.1-70b-versatile",
     )
 
     return chat_completion.choices[0].message.content
@@ -290,7 +290,8 @@ def generate_summary(document_context, main_subject, summary_purpose, length_det
                 "content": prompt,
             }
         ],
-        model="llama3-70b-8192",
+        model="llama-3.1-70b-versatile",
+
     )
 
 
@@ -371,7 +372,7 @@ def generate_content(company_info, content_purpose, desired_action, topic_detail
                 "content": prompt,
             }
         ],
-        model="llama3-70b-8192",
+        model="llama-3.1-70b-versatile",
     )
 
     return chat_completion.choices[0].message.content
@@ -430,7 +431,7 @@ def generate_sales_script(company_details, num_words, product_descriptions, feat
                 "content": prompt,
             }
         ],
-        model="llama3-70b-8192",
+        model="llama-3.1-70b-versatile",
     )
 
     return chat_completion.choices[0].message.content
@@ -519,20 +520,6 @@ def bhashini_translate(text: str,  to_code: str = "Hindi", from_code: str = "Eng
     return {"status_code": 200, "message": "Translation successful", "translated_content": translated_content}
 
 
-def generate_slide_titles(title, num_slides, special_instructions):
-    prompt = f"Generate titles for {num_slides} slides on the subject {title}. "
-    if special_instructions:
-        prompt += f"\nPay attention to the following points: {special_instructions} while generating titles. "
-    prompt += f"Titles should be in the form of a python list object with {num_slides} elements. Output only the list object without any text before or after the list."
-
-    client = Groq(api_key=GROQ_SECRET_ACCESS_KEY)
-    chat_completion = client.chat.completions.create(
-        messages=[{"role": "user", "content": prompt}],
-        model="llama3-70b-8192",
-    )
-    title_list = chat_completion.choices[0].message.content
-    return title_list
-
 
 def generate_slide_content(st, title, special_instructions, document_content=None):
     prompt = f"Generate content to be put in ppt slide with title {st}. The overall subject of the presentation is {title}. "
@@ -541,7 +528,7 @@ def generate_slide_content(st, title, special_instructions, document_content=Non
     if document_content:
         prompt += f"\nUse the following document content as a reference: {document_content[:2000]}... "
     prompt += (
-        "Content should be in the form of bullet points and should be just sufficient to fit on a single slide. "
+        "Content should be in the form of points and should be just sufficient to fit on a single slide {highest priority} "
         "Output only the slide contents - avoid any text describing the content. "
         "Do not include title in the content. No bold text. Avoid the text 'Here is the content for the PPT slide'. "
         "Do not include the bullet point symbols."
@@ -550,11 +537,27 @@ def generate_slide_content(st, title, special_instructions, document_content=Non
     client = Groq(api_key=GROQ_SECRET_ACCESS_KEY)
     chat_completion = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
-        model="llama3-70b-8192",
+        model="llama-3.1-70b-versatile",
+
     )
     slide_content = chat_completion.choices[0].message.content
     return slide_content
 
+def generate_slide_titles(title, num_slides, special_instructions):
+    prompt = f"Generate titles for {num_slides} slides on the subject {title}. "
+    if special_instructions:
+        prompt += f"\nPay attention to the following points: {special_instructions} while generating titles. "
+    prompt += ("Titles should be in the form of a python list object with {num_slides} elements. Output only the list object without any text before or after the list."
+            "The Title should not exceed more than two lines."
+            "Do not Hallucinate")
+
+    client = Groq(api_key=GROQ_SECRET_ACCESS_KEY)
+    chat_completion = client.chat.completions.create(
+        messages=[{"role": "user", "content": prompt}],
+        model="llama-3.1-70b-versatile",
+    )
+    title_list = chat_completion.choices[0].message.content
+    return title_list
 
 def add_slide(prs, title, content, bg_image):
     slide_layout = prs.slide_layouts[1]
@@ -564,9 +567,9 @@ def add_slide(prs, title, content, bg_image):
     content_placeholder = slide.placeholders[1]
 
     title_text_frame = title_placeholder.text_frame
-    title_font_size = Pt(32)
+    title_font_size = Pt(32)  # Title font size
     small_font_size = Pt(20)
-    title_text_frame.clear()
+    title_text_frame.clear()  # Clear any existing paragraphs
 
     p = title_text_frame.paragraphs[0]
     run = p.add_run()
@@ -585,30 +588,50 @@ def add_slide(prs, title, content, bg_image):
     p.alignment = PP_ALIGN.CENTER
 
     content_text_frame = content_placeholder.text_frame
-    content_font_size = Pt(18)
-    content_text_frame.paragraphs[0].font.size = content_font_size
-    content_text_frame.paragraphs[0].font.color.rgb = RGBColor(0, 0, 0)
-    content_text_frame.paragraphs[0].alignment = PP_ALIGN.LEFT
+    content_font_size = Pt(20)  # Updated default content font size
+    content_text_frame.clear()  # Clear any existing paragraphs
 
-    content_text_frame.text = '\n'.join(content)
+    for point in content:
+        point = point.lstrip("*•")  # Remove leading bullet symbols
+        p = content_text_frame.add_paragraph()
+        p.text = point.strip()
+        p.font.size = content_font_size
+        p.font.color.rgb = RGBColor(0, 0, 0)
+        p.alignment = PP_ALIGN.LEFT
 
+    while not check_text_fit(prs, content_text_frame):
+        content_font_size -= Pt(2)
+        for paragraph in content_text_frame.paragraphs:
+            if paragraph.font.size:
+                paragraph.font.size = content_font_size
+
+    # Set background image
     if bg_image is None:
-        bg_image = settings.DEFAULT_BACKGROUND_IMAGE_PATH
+        bg_image = settings.DEFAULT_BACKGROUND_IMAGE_PATH  # Path to the default background image
 
     left = top = Inches(0)
     pic = slide.shapes.add_picture(bg_image, left, top, width=prs.slide_width, height=prs.slide_height)
     slide.shapes._spTree.remove(pic._element)
     slide.shapes._spTree.insert(2, pic._element)
 
+def check_text_fit(prs, text_frame):
+    slide_height = prs.slide_height
+    total_height = sum((paragraph.font.size.pt if paragraph.font.size else Pt(18).pt) * len(paragraph.text.split('\n')) for paragraph in text_frame.paragraphs)
+    return total_height <= slide_height
 
 def create_presentation(title, num_slides, special_instructions, bg_image):
     prs = Presentation()
     slide_titles = generate_slide_titles(title, num_slides, special_instructions)
     slide_titles = slide_titles.replace('[', '').replace(']', '').replace('"', '').split(',')
 
-    max_points_per_slide = 4
+    max_points_per_slide = 4     # Adjust this value based on how much content you want per slide
+
+    total_slides_generated = 0
 
     for st in slide_titles:
+        if total_slides_generated >= num_slides:
+            break
+
         slide_content = generate_slide_content(st, title, special_instructions).replace("*", '').split('\n')
         current_content = []
         slide_count = 1
@@ -619,11 +642,21 @@ def create_presentation(title, num_slides, special_instructions, bg_image):
                 add_slide(prs, st if slide_count == 1 else f"{st} (contd.)", current_content, bg_image)
                 current_content = []
                 slide_count += 1
+                total_slides_generated += 1
 
-        if current_content:
+                if total_slides_generated >= num_slides:
+                    break
+
+        if current_content and total_slides_generated < num_slides:
             add_slide(prs, st if slide_count == 1 else f"{st} (contd.)", current_content, bg_image)
+            total_slides_generated += 1
 
     return prs
+
+
+
+
+
 
 
 def extract_document_content(file_path):
@@ -653,6 +686,10 @@ def extract_document_content(file_path):
         return text
     else:
         raise ValueError("Unsupported file type")
+
+
+
+
 
 
 

@@ -10,6 +10,7 @@ from logging.handlers import TimedRotatingFileHandler
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Static files (CSS, JavaScript, Images)
@@ -35,66 +36,80 @@ ENCRYPTION_SECRET_KEY = config('ENCRYPTION_SECRET_KEY_b64')
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 
 LOGGING = {
-    'version': 1,  # Specifies the version of the logging configuration schema
-    'disable_existing_loggers': False,  # Prevents existing loggers from being disabled
+    'version': 1,
+    'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',  # Defines the format of the log message
-            'style': '{',  # Uses str.format() style for formatting
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
         },
         'simple': {
-            'format': '{levelname} {message}',  # Defines a simpler format for log messages
-            'style': '{',  # Uses str.format() style for formatting
+            'format': '{levelname} {message}',
+            'style': '{',
         },
     },
     'handlers': {
         'file': {
-            'level': 'DEBUG',  # Sets the minimum log level to DEBUG for this handler
-            'class': 'logging.handlers.TimedRotatingFileHandler',  # Specifies the handler class for rotating logs based on time
-            'filename': os.path.join(BASE_DIR, 'django_debug.log'),  # Defines the log file location
-            'formatter': 'verbose',  # Uses the 'verbose' formatter for this handler
-            'when': 'D',  # Rotates the log file daily
-            'interval': 1,  # Interval of 1 day for rotation
-            'backupCount': 2,  # Keeps logs for the last 60 days (2 month)
+            'level': 'DEBUG',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'django_debug.log'),
+            'formatter': 'verbose',
+            'when': 'D',
+            'interval': 1,
+            'backupCount': 2,
         },
         'console': {
-            'level': 'DEBUG',  # Sets the minimum log level to DEBUG for this handler
-            'class': 'logging.StreamHandler',  # Specifies the handler class for logging to the console
-            'formatter': 'simple',  # Uses the 'simple' formatter for this handler
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
         },
-      
+        'audit_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'audit.log'),
+            'formatter': 'verbose',
+            'when': 'D',
+            'interval': 1,
+            'backupCount': 60,
+        },
     },
     'root': {
-        'handlers': ['file', 'console'],  # Specifies the handlers for the root logger
-        'level': 'DEBUG',  # Sets the minimum log level for the root logger to DEBUG
+        'handlers': ['file', 'console'],
+        'level': 'DEBUG',
     },
     'loggers': {
         'django': {
-            'handlers': ['file', 'console'],  # Specifies the handlers for the 'django' logger
-            'level': 'DEBUG',  # Sets the minimum log level for the 'django' logger to DEBUG
-            'propagate': True,  # Allows log messages to propagate to the parent (root) logger
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG',
+            'propagate': True,
         },
         'django.request': {
-            'handlers': ['file', 'console'],  # Specifies the handlers for the 'django.request' logger
-            'level': 'ERROR',  # Sets the minimum log level for the 'django.request' logger to ERROR
-            'propagate': False,  # Prevents log messages from propagating to the parent logger
+            'handlers': ['file', 'console'],
+            'level': 'ERROR',
+            'propagate': False,
         },
         'django.security': {
-            'handlers': ['file', 'console'],  # Specifies the handlers for the 'django.security' logger
-            'level': 'ERROR',  # Sets the minimum log level for the 'django.security' logger to ERROR
-            'propagate': False,  # Prevents log messages from propagating to the parent logger
+            'handlers': ['file', 'console'],
+            'level': 'ERROR',
+            'propagate': False,
         },
         'django.utils.autoreload': {
-            'handlers': ['file', 'console'],  # Specifies the handlers for the 'django.utils.autoreload' logger
-            'level': 'INFO',  # Sets the minimum log level for the 'django.utils.autoreload' logger to INFO to suppress DEBUG logs
-            'propagate': False,  # Prevents log messages from propagating to the parent logger
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'audit': {
+            'handlers': ['audit_file'],
+            'level': 'INFO',
+            'propagate': False,
         },
     },
 }
+
 
 
 # #AUTH_USER_MODEL = 'core.Profile'
@@ -149,6 +164,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.api_logging_middleware.APILoggingMiddleware'
 ]
 
 

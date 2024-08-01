@@ -90,6 +90,11 @@ class CustomAesRenderer(BaseRenderer):
         response = {'ciphertext': ciphertext_b64}
         return json.dumps(response)
 
+def landing(request):
+    return render(request, 'landing.html')
+
+def about(request):
+    return render(request, 'about.html')
 
 def encrypt_data(data):
     plaintext = json.dumps(data)
@@ -661,6 +666,20 @@ def business_proposal_generator(request):
 
 
 @csrf_exempt
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def fetch_first_name(request):
+    user = request.user
+    logger.debug(f"User {user.username} accessed the fetch_first_name view.")
+
+    response_data = {
+        'first_name': user.first_name,
+    }
+
+    logger.debug(f"Returning response data: {response_data}")
+    return JsonResponse(response_data)
+
+@csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def offer_letter_generator(request):
@@ -1073,6 +1092,85 @@ def logout_view(request):
         logger.error(f"Error during logout: {str(e)}")
         return JsonResponse({'error': 'An error occurred during logout.'}, status=500)
 
+# @csrf_exempt
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def create_presentation(request):
+#     try:
+#         # Load and parse the JSON data
+#         data = json.loads(request.POST.get('data'))
+#         logger.debug(f"Data received: {data}")
+
+#         title = data.get('title')
+#         num_slides = data.get('num_slides')
+#         special_instructions = data.get('special_instructions')
+        
+#         # Process background image file
+#         bg_image_file = request.FILES.get('bg_image', None)
+#         if bg_image_file:
+#             bg_image_path = default_storage.save(bg_image_file.name, bg_image_file)
+#             bg_image = default_storage.path(bg_image_path)
+#             logger.debug(f"Background image saved at: {bg_image}")
+#         else:
+#             bg_image = None
+
+#         # Process document file
+#         document_file = request.FILES.get('document', None)
+#         if document_file:
+#             document_path = default_storage.save(document_file.name, document_file)
+#             document_content = extract_document_content(default_storage.path(document_path))
+#             logger.debug("Document content extracted.")
+#         else:
+#             document_content = None
+
+#         # Generate presentation
+#         logger.info("Generating presentation...")
+#         prs = Presentation()
+#         slide_titles = generate_slide_titles(title, num_slides, special_instructions)
+#         slide_titles = slide_titles.replace('[', '').replace(']', '').replace('"', '').split(',')
+
+#         max_points_per_slide = 4
+
+#         for st in slide_titles:
+#             slide_content = generate_slide_content(st, title, special_instructions, document_content).replace("*", '').split('\n')
+#             current_content = []
+#             slide_count = 1
+
+#             for point in slide_content:
+#                 current_content.append(point.strip())
+#                 if len(current_content) >= max_points_per_slide:
+#                     add_slide(prs, st if slide_count == 1 else f"{st} (contd.)", current_content, bg_image)
+#                     current_content = []
+#                     slide_count += 1
+
+#             if current_content:
+#                 add_slide(prs, st if slide_count == 1 else f"{st} (contd.)", current_content, bg_image)
+
+#         # Save presentation to buffer and prepare response
+#         pptx_buffer = BytesIO()
+#         prs.save(pptx_buffer)
+#         pptx_buffer.seek(0)
+
+#         response = HttpResponse(pptx_buffer, content_type='application/vnd.openxmlformats-officedocument.presentationml.presentation')
+#         response['Content-Disposition'] = 'attachment; filename="SmartOffice_Assistant_Presentation.pptx"'
+
+#         logger.info("Presentation generated and response prepared.")
+#         return response
+
+#     except json.JSONDecodeError:
+#         logger.error("Invalid JSON format received.")
+#         return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
+#     except ValueError as e:
+#         logger.error(f"ValueError occurred: {str(e)}")
+#         return JsonResponse({'error': str(e)}, status=400)
+#     except Exception as e:
+#         logger.error(f"An unexpected error occurred: {str(e)}")
+#         return JsonResponse({'error': str(e)}, status=500)
+
+#     logger.error("Method not allowed.")
+#     return JsonResponse({'error': 'Method not allowed.'}, status=405)
+
+
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -1083,7 +1181,7 @@ def create_presentation(request):
         logger.debug(f"Data received: {data}")
 
         title = data.get('title')
-        num_slides = data.get('num_slides')
+        num_slides = int(data.get('num_slides'))  # Ensure num_slides is an integer
         special_instructions = data.get('special_instructions')
         
         # Process background image file
@@ -1111,8 +1209,12 @@ def create_presentation(request):
         slide_titles = slide_titles.replace('[', '').replace(']', '').replace('"', '').split(',')
 
         max_points_per_slide = 4
+        total_slides_generated = 0
 
         for st in slide_titles:
+            if total_slides_generated >= num_slides:
+                break
+
             slide_content = generate_slide_content(st, title, special_instructions, document_content).replace("*", '').split('\n')
             current_content = []
             slide_count = 1
@@ -1123,9 +1225,14 @@ def create_presentation(request):
                     add_slide(prs, st if slide_count == 1 else f"{st} (contd.)", current_content, bg_image)
                     current_content = []
                     slide_count += 1
+                    total_slides_generated += 1
 
-            if current_content:
+                    if total_slides_generated >= num_slides:
+                        break
+
+            if current_content and total_slides_generated < num_slides:
                 add_slide(prs, st if slide_count == 1 else f"{st} (contd.)", current_content, bg_image)
+                total_slides_generated += 1
 
         # Save presentation to buffer and prepare response
         pptx_buffer = BytesIO()
