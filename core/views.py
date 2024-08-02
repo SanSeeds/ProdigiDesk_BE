@@ -170,18 +170,73 @@ def decrypt_data(encrypted_data):
 #         logger.exception("Unexpected error")
 #         return JsonResponse({'error': str(e)}, status=500)
     
+# @csrf_exempt
+# def add_user(request):
+#     try:
+#         logger.debug("Request received")
+#         # Extract and decrypt the incoming payload
+#         encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
+#         if not encrypted_content:
+#             logger.error("No encrypted content found in the request.")
+#             return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
+        
+#         decrypted_content = decrypt_data(encrypted_content)
+#         data = json.loads(decrypted_content)
+#         logger.debug("Request body: %s", data)
+
+#         first_name = data.get('first_name')
+#         last_name = data.get('last_name')
+#         username = data.get('username')
+#         email = data.get('email')
+#         password = data.get('password')
+#         confirm_password = data.get('confirm_password')
+
+#         if not first_name or not last_name or not username or not email or not password or not confirm_password:
+#             logger.error("Missing field(s)")
+#             return JsonResponse({'error': 'All fields are required.'}, status=400)
+
+#         if password != confirm_password:
+#             logger.error("Passwords do not match")
+#             return JsonResponse({'error': 'Passwords do not match.'}, status=400)
+
+#         try:
+#             validate_password(password)
+#             logger.debug("Password validation passed")
+#         except ValidationError as e:
+#             logger.error("Password validation error: %s", e.messages)
+#             return JsonResponse({'error': list(e.messages)}, status=400)
+
+#         if User.objects.filter(username=username).exists():
+#             logger.error("Username is already taken")
+#             return JsonResponse({'error': 'Username is already taken.'}, status=400)
+
+#         if User.objects.filter(email=email).exists():
+#             logger.error("Email is already registered")
+#             return JsonResponse({'error': 'Email is already registered.'}, status=400)
+
+#         user = User.objects.create_user(username=username, email=email, password=password, first_name=first_name, last_name=last_name)
+#         logger.debug("User created: %s", user)
+
+#         # Create a profile for the new user
+#         Profile.objects.create(user=user)
+
+#         # Encrypt the response content
+#         encrypted_response = encrypt_data({'success': 'User created successfully.'})
+
+#         return JsonResponse({'encrypted_content': encrypted_response}, status=201)
+
+#     except json.JSONDecodeError:
+#         logger.error("Invalid JSON format")
+#         return JsonResponse({'error': 'Invalid JSON format.'}, status=400)
+#     except Exception as e:
+#         logger.exception("Unexpected error")
+#         return JsonResponse({'error': str(e)}, status=500)
+
 @csrf_exempt
 def add_user(request):
     try:
         logger.debug("Request received")
-        # Extract and decrypt the incoming payload
-        encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
-        if not encrypted_content:
-            logger.error("No encrypted content found in the request.")
-            return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
-        
-        decrypted_content = decrypt_data(encrypted_content)
-        data = json.loads(decrypted_content)
+        data = json.loads(request.body.decode('utf-8'))
         logger.debug("Request body: %s", data)
 
         first_name = data.get('first_name')
@@ -204,34 +259,25 @@ def add_user(request):
             logger.debug("Password validation passed")
         except ValidationError as e:
             logger.error("Password validation error: %s", e.messages)
-            return JsonResponse({'error': list(e.messages)}, status=400)
+            return JsonResponse({'error': e.messages[0]}, status=400)
 
         if User.objects.filter(username=username).exists():
-            logger.error("Username is already taken")
-            return JsonResponse({'error': 'Username is already taken.'}, status=400)
+            logger.error("Username already exists")
+            return JsonResponse({'error': 'Username already exists.'}, status=400)
 
         if User.objects.filter(email=email).exists():
-            logger.error("Email is already registered")
-            return JsonResponse({'error': 'Email is already registered.'}, status=400)
+            logger.error("Email already exists")
+            return JsonResponse({'error': 'Email already exists.'}, status=400)
 
-        user = User.objects.create_user(username=username, email=email, password=password, first_name=first_name, last_name=last_name)
-        logger.debug("User created: %s", user)
+        user = User.objects.create_user(username=username, password=password, email=email, first_name=first_name, last_name=last_name)
+        logger.info("User created successfully: %s", user.username)
+        return JsonResponse({'message': 'User created successfully.'}, status=201)
 
-        # Encrypt the response content
-        encrypted_response = encrypt_data({'success': 'User created successfully.'})
-
-        return JsonResponse({'encrypted_content': encrypted_response}, status=201)
-
-    except json.JSONDecodeError:
-        logger.error("Invalid JSON format")
-        return JsonResponse({'error': 'Invalid JSON format.'}, status=400)
     except Exception as e:
-        logger.exception("Unexpected error")
-        return JsonResponse({'error': str(e)}, status=500)
+        logger.error("Exception: %s", str(e))
+        return JsonResponse({'error': 'An error occurred.'}, status=500)
 
 
-
-@csrf_exempt
 def generate_otp():
     return ''.join(random.choices('0123456789', k=6))
 
@@ -666,20 +712,6 @@ def business_proposal_generator(request):
 
 
 @csrf_exempt
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def fetch_first_name(request):
-    user = request.user
-    logger.debug(f"User {user.username} accessed the fetch_first_name view.")
-
-    response_data = {
-        'first_name': user.first_name,
-    }
-
-    logger.debug(f"Returning response data: {response_data}")
-    return JsonResponse(response_data)
-
-@csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def offer_letter_generator(request):
@@ -807,21 +839,6 @@ def profile(request):
     logger.debug(f"Returning response data: {response_data}")
     return JsonResponse(response_data)
 
-
-    response_data = {
-        'user': {
-            'firstName': user.firstName,
-            'lastName': user.lastName,
-        },
-        'profile': {
-            'bio': profile.bio,
-            'location': profile.location,
-            'birth_date': profile.birth_date.isoformat() if profile.birth_date else None
-        }
-    }
-
-    logger.debug(f"Returning response data: {response_data}")
-    return JsonResponse(response_data)
 
 
 @csrf_exempt
@@ -1079,7 +1096,6 @@ def sales_script_generator(request):
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
 @csrf_exempt
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def logout_view(request):

@@ -6,7 +6,6 @@ urlpatterns = [
     path('', views.landing, name='landing'),
     path('about/', views.about, name='about'),
     path('admin/', admin.site.urls),
-    path('fetch_firstName/', views.fetch_first_name, name='fetch_first_name'),
     path('test_report/', views.test_report, name='test_report'),
     path('signin/', views.signin, name='signin'),
     path('forgot_password/', views.forgot_password, name='forgot_password'),

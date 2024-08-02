@@ -36,7 +36,7 @@ ENCRYPTION_SECRET_KEY = config('ENCRYPTION_SECRET_KEY_b64')
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 
 LOGGING = {
