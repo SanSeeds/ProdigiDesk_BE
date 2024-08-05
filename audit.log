@@ -1426,3 +1426,394 @@ INFO 2024-08-02 16:19:56,763 api_logging_middleware API call: Method=GET, Path=/
 INFO 2024-08-02 16:19:56,778 api_logging_middleware API response: Status=200, Path=/profile/
 INFO 2024-08-02 16:19:56,794 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
 INFO 2024-08-02 16:19:56,802 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 16:54:35,217 api_logging_middleware API call: Method=GET, Path=/admin/, User=sandhya@gmail.com, Data=No body
+INFO 2024-08-02 16:54:35,370 api_logging_middleware API response: Status=200, Path=/admin/
+INFO 2024-08-02 16:54:37,932 api_logging_middleware API call: Method=GET, Path=/admin/auth/user/, User=sandhya@gmail.com, Data=No body
+INFO 2024-08-02 16:54:38,043 api_logging_middleware API response: Status=200, Path=/admin/auth/user/
+INFO 2024-08-02 16:54:38,134 api_logging_middleware API call: Method=GET, Path=/admin/jsi18n/, User=sandhya@gmail.com, Data=No body
+INFO 2024-08-02 16:54:38,142 api_logging_middleware API response: Status=200, Path=/admin/jsi18n/
+INFO 2024-08-02 16:54:44,666 api_logging_middleware API call: Method=GET, Path=/admin/auth/user/43/change/, User=sandhya@gmail.com, Data=No body
+INFO 2024-08-02 16:54:44,848 api_logging_middleware API response: Status=200, Path=/admin/auth/user/43/change/
+INFO 2024-08-02 16:54:44,995 api_logging_middleware API call: Method=GET, Path=/admin/jsi18n/, User=sandhya@gmail.com, Data=No body
+INFO 2024-08-02 16:54:44,998 api_logging_middleware API response: Status=200, Path=/admin/jsi18n/
+INFO 2024-08-02 16:54:59,686 api_logging_middleware API call: Method=GET, Path=/admin/auth/user/, User=sandhya@gmail.com, Data=No body
+INFO 2024-08-02 16:54:59,745 api_logging_middleware API response: Status=200, Path=/admin/auth/user/
+INFO 2024-08-02 16:55:00,925 api_logging_middleware API call: Method=GET, Path=/admin/auth/group/, User=sandhya@gmail.com, Data=No body
+INFO 2024-08-02 16:55:00,954 api_logging_middleware API response: Status=200, Path=/admin/auth/group/
+INFO 2024-08-02 16:55:01,042 api_logging_middleware API call: Method=GET, Path=/admin/jsi18n/, User=sandhya@gmail.com, Data=No body
+INFO 2024-08-02 16:55:01,050 api_logging_middleware API response: Status=200, Path=/admin/jsi18n/
+INFO 2024-08-02 16:55:02,577 api_logging_middleware API call: Method=GET, Path=/admin/auth/user/, User=sandhya@gmail.com, Data=No body
+INFO 2024-08-02 16:55:02,636 api_logging_middleware API response: Status=200, Path=/admin/auth/user/
+INFO 2024-08-02 16:55:02,727 api_logging_middleware API call: Method=GET, Path=/admin/jsi18n/, User=sandhya@gmail.com, Data=No body
+INFO 2024-08-02 16:55:02,727 api_logging_middleware API response: Status=200, Path=/admin/jsi18n/
+INFO 2024-08-02 17:10:51,588 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:10:54,638 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:10:54,647 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:10:55,929 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:10:55,936 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:10:56,529 api_logging_middleware API call: Method=POST, Path=/logout/, User=Anonymous, Data={}
+INFO 2024-08-02 17:10:56,998 api_logging_middleware User logged out: User=sandhya@gmail.com, Time=2024-08-02 17:10:56
+INFO 2024-08-02 17:10:57,046 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:10:57,046 api_logging_middleware API response: Status=200, Path=/logout/
+INFO 2024-08-02 17:10:57,062 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:10:58,358 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:10:58,369 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:10:59,690 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:10:59,690 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:11:15,548 api_logging_middleware API call: Method=POST, Path=/signin/, User=Anonymous, Data={"encrypted_content":"BPNVS1pyPgD0hCTtut8TsB6/YM6gktnQOdvAOGv8Fr35Fx7Uw3TB7+nc5oibgm7NGJpEJYDogfpFo/67c8MhdA=="}
+INFO 2024-08-02 17:11:17,093 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:11:18,439 api_logging_middleware User logged in: User=abhinav, Time=2024-08-02 17:11:18
+INFO 2024-08-02 17:11:18,439 api_logging_middleware API response: Status=200, Path=/signin/
+INFO 2024-08-02 17:11:18,620 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:11:20,319 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:11:20,327 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:11:22,248 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:11:31,476 api_logging_middleware API call: Method=POST, Path=/logout/, User=Anonymous, Data={}
+INFO 2024-08-02 17:11:31,487 api_logging_middleware User logged out: User=abhinav, Time=2024-08-02 17:11:31
+INFO 2024-08-02 17:11:31,489 api_logging_middleware API response: Status=200, Path=/logout/
+INFO 2024-08-02 17:11:36,075 api_logging_middleware API call: Method=POST, Path=/signin/, User=Anonymous, Data={"encrypted_content":"BPNVS1pyPgD0hCTtut8TsHKbsrNBgjWHPlO7vJKPhKiwsIBb1vGFkEo3NW8I40gAAZMcDvAcZVtlcD1HASlVHirn86D1IWoHvsBukPSputA="}
+INFO 2024-08-02 17:11:36,090 api_logging_middleware API response: Status=400, Path=/signin/
+INFO 2024-08-02 17:11:44,818 api_logging_middleware API call: Method=POST, Path=/signin/, User=Anonymous, Data={"encrypted_content":"BPNVS1pyPgD0hCTtut8TsB6/YM6gktnQOdvAOGv8Fr35Fx7Uw3TB7+nc5oibgm7NGJpEJYDogfpFo/67c8MhdA=="}
+INFO 2024-08-02 17:11:45,977 api_logging_middleware User logged in: User=abhinav, Time=2024-08-02 17:11:45
+INFO 2024-08-02 17:11:45,977 api_logging_middleware API response: Status=200, Path=/signin/
+INFO 2024-08-02 17:11:46,008 api_logging_middleware API call: Method=POST, Path=/signin/, User=Anonymous, Data={"encrypted_content":"BPNVS1pyPgD0hCTtut8TsB6/YM6gktnQOdvAOGv8Fr35Fx7Uw3TB7+nc5oibgm7NGJpEJYDogfpFo/67c8MhdA=="}
+INFO 2024-08-02 17:11:46,166 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:11:47,238 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:11:47,250 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:11:48,268 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:11:48,277 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:11:48,379 api_logging_middleware User logged in: User=abhinav, Time=2024-08-02 17:11:48
+INFO 2024-08-02 17:11:48,379 api_logging_middleware API response: Status=200, Path=/signin/
+INFO 2024-08-02 17:11:49,079 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:11:49,086 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:11:49,745 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:11:49,752 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:11:50,798 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:11:50,809 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:11:52,147 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:11:52,157 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:11:53,016 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:11:53,032 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:11:54,995 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:11:54,999 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:11:55,909 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:11:55,918 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:11:56,602 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:11:56,611 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:11:57,587 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:11:57,600 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:11:58,277 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:12:03,011 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:12:03,876 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:12:03,888 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:12:04,509 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:12:09,696 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:12:10,633 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:12:10,647 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:12:12,299 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:12:12,299 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:12:13,309 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:12:13,325 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:12:14,148 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:12:14,150 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:12:14,786 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:12:14,786 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:12:15,639 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:12:23,285 api_logging_middleware API call: Method=POST, Path=/logout/, User=Anonymous, Data={}
+INFO 2024-08-02 17:12:23,289 api_logging_middleware User logged out: User=abhinav, Time=2024-08-02 17:12:23
+INFO 2024-08-02 17:12:23,289 api_logging_middleware API response: Status=200, Path=/logout/
+INFO 2024-08-02 17:12:40,739 api_logging_middleware API call: Method=GET, Path=/admin/auth/user/5/change/, User=sandhya@gmail.com, Data=No body
+INFO 2024-08-02 17:12:40,957 api_logging_middleware API response: Status=200, Path=/admin/auth/user/5/change/
+INFO 2024-08-02 17:12:41,087 api_logging_middleware API call: Method=GET, Path=/admin/jsi18n/, User=sandhya@gmail.com, Data=No body
+INFO 2024-08-02 17:12:41,099 api_logging_middleware API response: Status=200, Path=/admin/jsi18n/
+INFO 2024-08-02 17:12:46,749 api_logging_middleware API call: Method=GET, Path=/admin/auth/user/, User=sandhya@gmail.com, Data=No body
+INFO 2024-08-02 17:12:46,849 api_logging_middleware API response: Status=200, Path=/admin/auth/user/
+INFO 2024-08-02 17:14:37,049 api_logging_middleware API call: Method=POST, Path=/add_user/, User=Anonymous, Data={"first_name":"Abhinav","last_name":"Saxena","username":"abhinav12311","email":"pp@gmail","password":"Mm54454**","confirm_password":"Mm54454**"}
+INFO 2024-08-02 17:14:38,157 api_logging_middleware API response: Status=201, Path=/add_user/
+INFO 2024-08-02 17:15:39,877 api_logging_middleware API call: Method=POST, Path=/signin/, User=Anonymous, Data={"encrypted_content":"BPNVS1pyPgD0hCTtut8TsB6/YM6gktnQOdvAOGv8Fr35Fx7Uw3TB7+nc5oibgm7NGJpEJYDogfpFo/67c8MhdA=="}
+INFO 2024-08-02 17:15:40,988 api_logging_middleware User logged in: User=abhinav, Time=2024-08-02 17:15:40
+INFO 2024-08-02 17:15:40,990 api_logging_middleware API response: Status=200, Path=/signin/
+INFO 2024-08-02 17:15:41,157 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:15:42,376 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:15:42,399 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:15:43,295 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:17:09,599 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:17:10,959 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:17:10,996 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:17:12,139 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:17:12,148 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:17:39,962 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:17:39,962 api_logging_middleware API call: Method=GET, Path=/admin/auth/user/, User=sandhya@gmail.com, Data=No body
+INFO 2024-08-02 17:17:40,034 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:17:40,060 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:17:40,369 api_logging_middleware API response: Status=200, Path=/admin/auth/user/
+INFO 2024-08-02 17:17:41,365 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:17:41,413 api_logging_middleware API call: Method=GET, Path=/admin/jsi18n/, User=sandhya@gmail.com, Data=No body
+INFO 2024-08-02 17:17:41,429 api_logging_middleware API response: Status=200, Path=/admin/jsi18n/
+INFO 2024-08-02 17:17:44,345 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:17:44,359 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:17:44,375 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:20:42,637 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:20:43,317 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:20:43,325 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:20:43,748 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:20:43,756 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:20:44,440 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:20:44,457 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:20:44,905 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:21:49,582 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:21:50,029 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:21:50,039 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:21:50,374 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:21:50,381 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:21:51,220 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:21:51,250 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:21:51,638 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:24:54,748 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:24:54,967 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:24:54,977 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:24:55,048 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:24:55,049 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:24:55,119 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:24:55,129 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:24:55,194 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:26:20,870 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:26:20,890 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:26:20,900 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:26:20,930 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:26:20,938 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:26:20,950 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:26:20,958 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:26:20,970 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:26:24,422 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:26:24,430 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:26:24,437 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:26:24,458 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:26:25,476 api_logging_middleware API call: Method=POST, Path=/logout/, User=Anonymous, Data={}
+INFO 2024-08-02 17:26:25,484 api_logging_middleware User logged out: User=abhinav, Time=2024-08-02 17:26:25
+INFO 2024-08-02 17:26:25,484 api_logging_middleware API response: Status=200, Path=/logout/
+INFO 2024-08-02 17:26:28,846 api_logging_middleware API call: Method=POST, Path=/signin/, User=Anonymous, Data={"encrypted_content":"BPNVS1pyPgD0hCTtut8TsB6/YM6gktnQOdvAOGv8Fr35Fx7Uw3TB7+nc5oibgm7NGJpEJYDogfpFo/67c8MhdA=="}
+INFO 2024-08-02 17:26:30,018 api_logging_middleware User logged in: User=abhinav, Time=2024-08-02 17:26:30
+INFO 2024-08-02 17:26:30,020 api_logging_middleware API response: Status=200, Path=/signin/
+INFO 2024-08-02 17:26:30,142 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:26:30,160 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:26:30,172 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:26:30,178 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:26:32,562 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:26:32,579 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:26:32,587 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:26:32,599 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:26:32,607 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:26:32,619 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:26:32,630 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:26:32,642 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:26:39,438 api_logging_middleware API call: Method=POST, Path=/profile/, User=Anonymous, Data={"first_name":"Abhinav","last_name":"Raj","bio":"This is abhinav Saxena from gorakhpur","location":"Goa","birth_date":"2000-09-15"}
+INFO 2024-08-02 17:26:39,478 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:26:39,489 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:26:39,504 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:26:41,999 api_logging_middleware API call: Method=POST, Path=/logout/, User=Anonymous, Data={}
+INFO 2024-08-02 17:26:42,007 api_logging_middleware User logged out: User=abhinav, Time=2024-08-02 17:26:42
+INFO 2024-08-02 17:26:42,007 api_logging_middleware API response: Status=200, Path=/logout/
+INFO 2024-08-02 17:26:45,669 api_logging_middleware API call: Method=POST, Path=/signin/, User=Anonymous, Data={"encrypted_content":"BPNVS1pyPgD0hCTtut8TsNShGAjflRFBPiKi4gfP7BaEG/81sgt9yzytNbWiwBWoVD89TLvxBSqFlSJrj5OrXg=="}
+INFO 2024-08-02 17:26:46,774 api_logging_middleware User logged in: User=yuvi15, Time=2024-08-02 17:26:46
+INFO 2024-08-02 17:26:46,774 api_logging_middleware API response: Status=200, Path=/signin/
+INFO 2024-08-02 17:26:46,898 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:26:46,920 api_logging_middleware API response: Status=404, Path=/profile/
+INFO 2024-08-02 17:26:46,928 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:26:46,938 api_logging_middleware API response: Status=404, Path=/profile/
+INFO 2024-08-02 17:26:49,367 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:26:49,379 api_logging_middleware API response: Status=404, Path=/profile/
+INFO 2024-08-02 17:26:49,387 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:26:49,398 api_logging_middleware API response: Status=404, Path=/profile/
+INFO 2024-08-02 17:26:49,400 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:26:49,415 api_logging_middleware API response: Status=404, Path=/profile/
+INFO 2024-08-02 17:26:49,423 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:26:49,429 api_logging_middleware API response: Status=404, Path=/profile/
+INFO 2024-08-02 17:26:55,438 api_logging_middleware API call: Method=POST, Path=/logout/, User=Anonymous, Data={}
+INFO 2024-08-02 17:26:55,439 api_logging_middleware User logged out: User=yuvi15, Time=2024-08-02 17:26:55
+INFO 2024-08-02 17:26:55,439 api_logging_middleware API response: Status=200, Path=/logout/
+INFO 2024-08-02 17:26:58,507 api_logging_middleware API call: Method=POST, Path=/signin/, User=Anonymous, Data={"encrypted_content":"C6mXC8Cl+cZ/7uE+AJaU2wl0KqQGxC0WeOYgdepbat36YYj1q2mk3Ko9KNZYjwg0rZQHDcCpV089biq8IJKzSw=="}
+INFO 2024-08-02 17:26:59,656 api_logging_middleware User logged in: User=sandhya@gmail.com, Time=2024-08-02 17:26:59
+INFO 2024-08-02 17:26:59,656 api_logging_middleware API response: Status=200, Path=/signin/
+INFO 2024-08-02 17:26:59,758 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:26:59,774 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:26:59,783 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:26:59,790 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:27:00,497 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:27:00,522 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:27:00,528 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:27:00,538 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:27:00,538 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:27:00,555 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:27:00,561 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:27:00,570 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:27:03,349 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:27:03,356 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:27:03,364 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:27:03,372 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:27:13,464 api_logging_middleware API call: Method=POST, Path=/logout/, User=Anonymous, Data={}
+INFO 2024-08-02 17:27:13,469 api_logging_middleware User logged out: User=sandhya@gmail.com, Time=2024-08-02 17:27:13
+INFO 2024-08-02 17:27:13,469 api_logging_middleware API response: Status=200, Path=/logout/
+INFO 2024-08-02 17:27:19,739 api_logging_middleware API call: Method=POST, Path=/signin/, User=Anonymous, Data={"encrypted_content":"BPNVS1pyPgD0hCTtut8TsNShGAjflRFBPiKi4gfP7BaEG/81sgt9yzytNbWiwBWoVD89TLvxBSqFlSJrj5OrXg=="}
+INFO 2024-08-02 17:27:20,910 api_logging_middleware User logged in: User=yuvi15, Time=2024-08-02 17:27:20
+INFO 2024-08-02 17:27:20,919 api_logging_middleware API response: Status=200, Path=/signin/
+INFO 2024-08-02 17:27:21,084 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:27:21,100 api_logging_middleware API response: Status=404, Path=/profile/
+INFO 2024-08-02 17:27:21,107 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:27:21,117 api_logging_middleware API response: Status=404, Path=/profile/
+INFO 2024-08-02 17:27:22,807 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:27:22,819 api_logging_middleware API response: Status=404, Path=/profile/
+INFO 2024-08-02 17:27:22,822 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:27:22,839 api_logging_middleware API response: Status=404, Path=/profile/
+INFO 2024-08-02 17:27:22,843 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:27:22,859 api_logging_middleware API response: Status=404, Path=/profile/
+INFO 2024-08-02 17:27:22,863 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:27:22,878 api_logging_middleware API response: Status=404, Path=/profile/
+INFO 2024-08-02 17:27:35,526 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:27:35,534 api_logging_middleware API response: Status=404, Path=/profile/
+INFO 2024-08-02 17:27:35,539 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:27:35,539 api_logging_middleware API response: Status=404, Path=/profile/
+INFO 2024-08-02 17:27:35,547 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:27:35,558 api_logging_middleware API response: Status=404, Path=/profile/
+INFO 2024-08-02 17:27:35,558 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:27:35,576 api_logging_middleware API response: Status=404, Path=/profile/
+INFO 2024-08-02 17:27:48,106 api_logging_middleware API call: Method=POST, Path=/logout/, User=Anonymous, Data={}
+INFO 2024-08-02 17:27:48,106 api_logging_middleware User logged out: User=yuvi15, Time=2024-08-02 17:27:48
+INFO 2024-08-02 17:27:48,106 api_logging_middleware API response: Status=200, Path=/logout/
+INFO 2024-08-02 17:27:59,349 api_logging_middleware API call: Method=POST, Path=/send_otp/, User=Anonymous, Data={"email":"dnbfjsdbjb@gmail.com"}
+INFO 2024-08-02 17:27:59,357 api_logging_middleware API response: Status=404, Path=/send_otp/
+INFO 2024-08-02 17:28:08,186 api_logging_middleware API call: Method=POST, Path=/send_otp/, User=Anonymous, Data={"email":"abhinavsaxena1509@gmail.com"}
+INFO 2024-08-02 17:28:13,087 api_logging_middleware API response: Status=200, Path=/send_otp/
+INFO 2024-08-02 17:30:38,789 api_logging_middleware API call: Method=POST, Path=/signin/, User=Anonymous, Data={"encrypted_content":"BPNVS1pyPgD0hCTtut8TsNShGAjflRFBPiKi4gfP7BaEG/81sgt9yzytNbWiwBWoVD89TLvxBSqFlSJrj5OrXg=="}
+INFO 2024-08-02 17:30:39,945 api_logging_middleware User logged in: User=yuvi15, Time=2024-08-02 17:30:39
+INFO 2024-08-02 17:30:40,058 api_logging_middleware API response: Status=200, Path=/signin/
+INFO 2024-08-02 17:30:40,236 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:30:40,470 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:30:40,480 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:30:40,678 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:30:42,115 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:30:42,209 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:30:42,218 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:30:42,427 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:30:42,438 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:30:42,628 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:30:42,630 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:30:42,806 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 17:32:34,298 api_logging_middleware API call: Method=POST, Path=/logout/, User=Anonymous, Data={}
+INFO 2024-08-02 17:32:34,300 api_logging_middleware User logged out: User=yuvi15, Time=2024-08-02 17:32:34
+INFO 2024-08-02 17:32:34,300 api_logging_middleware API response: Status=200, Path=/logout/
+INFO 2024-08-02 17:32:38,381 api_logging_middleware API call: Method=POST, Path=/signin/, User=Anonymous, Data={"encrypted_content":"BPNVS1pyPgD0hCTtut8TsB6/YM6gktnQOdvAOGv8Fr35Fx7Uw3TB7+nc5oibgm7NGJpEJYDogfpFo/67c8MhdA=="}
+INFO 2024-08-02 17:32:39,518 api_logging_middleware User logged in: User=abhinav, Time=2024-08-02 17:32:39
+INFO 2024-08-02 17:32:39,518 api_logging_middleware API response: Status=200, Path=/signin/
+INFO 2024-08-02 17:32:39,667 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:32:39,689 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:32:39,721 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:32:39,761 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:32:43,508 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:32:43,509 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:32:43,520 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:32:43,529 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:32:43,537 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:32:43,553 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 17:32:43,569 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 17:32:43,583 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 19:58:35,912 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 19:58:35,979 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 19:58:35,979 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 19:58:35,994 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 19:58:35,997 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 19:58:35,997 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 19:58:36,011 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 19:58:36,011 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 19:58:38,069 api_logging_middleware API call: Method=POST, Path=/logout/, User=Anonymous, Data={}
+INFO 2024-08-02 19:58:38,069 api_logging_middleware User logged out: User=abhinav, Time=2024-08-02 19:58:38
+INFO 2024-08-02 19:58:38,069 api_logging_middleware API response: Status=200, Path=/logout/
+INFO 2024-08-02 20:01:42,463 api_logging_middleware API call: Method=POST, Path=/signin/, User=Anonymous, Data={"encrypted_content":"BPNVS1pyPgD0hCTtut8TsB6/YM6gktnQOdvAOGv8Fr35Fx7Uw3TB7+nc5oibgm7NGJpEJYDogfpFo/67c8MhdA=="}
+INFO 2024-08-02 20:01:43,401 api_logging_middleware User logged in: User=abhinav, Time=2024-08-02 20:01:43
+INFO 2024-08-02 20:01:43,401 api_logging_middleware API response: Status=200, Path=/signin/
+INFO 2024-08-02 20:01:43,486 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 20:01:43,494 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 20:01:43,501 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 20:01:43,509 api_logging_middleware API response: Status=200, Path=/profile/
+INFO 2024-08-02 20:01:46,602 api_logging_middleware API call: Method=POST, Path=/signin/, User=Anonymous, Data={"encrypted_content":"BPNVS1pyPgD0hCTtut8TsNShGAjflRFBPiKi4gfP7BaEG/81sgt9yzytNbWiwBWoVD89TLvxBSqFlSJrj5OrXg=="}
+INFO 2024-08-02 20:01:47,324 api_logging_middleware User logged in: User=yuvi15, Time=2024-08-02 20:01:47
+INFO 2024-08-02 20:01:47,324 api_logging_middleware API response: Status=200, Path=/signin/
+INFO 2024-08-02 20:01:47,390 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 20:01:47,510 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 20:01:47,510 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 20:01:47,584 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 20:01:49,742 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 20:01:50,068 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 20:01:50,082 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 20:01:50,145 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 20:01:50,145 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 20:01:50,206 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 20:01:50,209 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 20:01:50,256 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 20:01:51,289 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 20:01:51,377 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 20:01:51,386 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 20:01:51,451 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 20:03:32,683 api_logging_middleware API call: Method=POST, Path=/logout/, User=Anonymous, Data={}
+INFO 2024-08-02 20:03:32,777 api_logging_middleware User logged out: User=yuvi15, Time=2024-08-02 20:03:32
+INFO 2024-08-02 20:03:32,777 api_logging_middleware API response: Status=200, Path=/logout/
+INFO 2024-08-02 20:03:35,881 api_logging_middleware API call: Method=POST, Path=/signin/, User=Anonymous, Data={"encrypted_content":"BPNVS1pyPgD0hCTtut8TsNShGAjflRFBPiKi4gfP7BaEG/81sgt9yzytNbWiwBWoVD89TLvxBSqFlSJrj5OrXg=="}
+INFO 2024-08-02 20:03:36,705 api_logging_middleware User logged in: User=yuvi15, Time=2024-08-02 20:03:36
+INFO 2024-08-02 20:03:36,705 api_logging_middleware API response: Status=200, Path=/signin/
+INFO 2024-08-02 20:03:36,777 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 20:03:36,785 api_logging_middleware API response: Status=404, Path=/profile/
+INFO 2024-08-02 20:03:36,793 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 20:03:36,801 api_logging_middleware API response: Status=404, Path=/profile/
+INFO 2024-08-02 20:03:42,611 api_logging_middleware API call: Method=GET, Path=/admin/auth/user/, User=sandhya@gmail.com, Data=No body
+INFO 2024-08-02 20:03:42,731 api_logging_middleware API response: Status=200, Path=/admin/auth/user/
+INFO 2024-08-02 20:03:42,863 api_logging_middleware API call: Method=GET, Path=/admin/jsi18n/, User=sandhya@gmail.com, Data=No body
+INFO 2024-08-02 20:03:42,872 api_logging_middleware API response: Status=200, Path=/admin/jsi18n/
+INFO 2024-08-02 20:03:58,418 api_logging_middleware API call: Method=POST, Path=/admin/auth/user/, User=sandhya@gmail.com, Data=csrfmiddlewaretoken=Ky9TnIWnflR5dXAV9yIiYPO2Tdiy6l9IbQgPj4uWpMUsj9EjbxcWYrkx6PdTAq9V&action=delete_selected&select_across=0&index=0&_selected_action=43&_selected_action=47&_selected_action=44&_selected_action=40&_selected_action=41&_selected_action=45&_selected_action=46&_selected_action=42
+INFO 2024-08-02 20:03:58,468 api_logging_middleware API response: Status=200, Path=/admin/auth/user/
+INFO 2024-08-02 20:04:00,309 api_logging_middleware API call: Method=POST, Path=/admin/auth/user/, User=sandhya@gmail.com, Data=csrfmiddlewaretoken=EqC31rypmxnykb50SGOKDCEDgrg7moQq5IJZXN6YwYqVqn9oUFioDea8t3bsQtQD&_selected_action=43&_selected_action=47&_selected_action=44&_selected_action=40&_selected_action=41&_selected_action=45&_selected_action=46&_selected_action=42&action=delete_selected&post=yes
+INFO 2024-08-02 20:04:00,492 api_logging_middleware API response: Status=302, Path=/admin/auth/user/
+INFO 2024-08-02 20:04:00,518 api_logging_middleware API call: Method=GET, Path=/admin/auth/user/, User=sandhya@gmail.com, Data=No body
+INFO 2024-08-02 20:04:00,546 api_logging_middleware API response: Status=200, Path=/admin/auth/user/
+INFO 2024-08-02 20:04:00,635 api_logging_middleware API call: Method=GET, Path=/admin/jsi18n/, User=sandhya@gmail.com, Data=No body
+INFO 2024-08-02 20:04:00,640 api_logging_middleware API response: Status=200, Path=/admin/jsi18n/
+INFO 2024-08-02 20:08:39,652 api_logging_middleware API call: Method=POST, Path=/logout/, User=Anonymous, Data={}
+INFO 2024-08-02 20:08:39,652 api_logging_middleware API response: Status=401, Path=/logout/
+INFO 2024-08-02 20:21:48,657 api_logging_middleware API call: Method=POST, Path=/signin/, User=Anonymous, Data={"encrypted_content":"BPNVS1pyPgD0hCTtut8TsNShGAjflRFBPiKi4gfP7BaEG/81sgt9yzytNbWiwBWoVD89TLvxBSqFlSJrj5OrXg=="}
+INFO 2024-08-02 20:21:48,672 api_logging_middleware API response: Status=400, Path=/signin/
+INFO 2024-08-02 20:21:59,227 api_logging_middleware API call: Method=POST, Path=/send_otp/, User=Anonymous, Data={"email":"abhinavsaxena1509@gmail.com"}
+INFO 2024-08-02 20:21:59,235 api_logging_middleware API response: Status=404, Path=/send_otp/
+INFO 2024-08-02 20:22:10,814 api_logging_middleware API call: Method=GET, Path=/admin/, User=sandhya@gmail.com, Data=No body
+INFO 2024-08-02 20:22:11,053 api_logging_middleware API response: Status=200, Path=/admin/
+INFO 2024-08-02 20:22:11,386 api_logging_middleware API call: Method=GET, Path=/favicon.ico, User=sandhya@gmail.com, Data=No body
+INFO 2024-08-02 20:22:11,804 api_logging_middleware API response: Status=404, Path=/favicon.ico
+INFO 2024-08-02 20:22:15,726 api_logging_middleware API call: Method=GET, Path=/admin/auth/user/, User=sandhya@gmail.com, Data=No body
+INFO 2024-08-02 20:22:16,042 api_logging_middleware API response: Status=200, Path=/admin/auth/user/
+INFO 2024-08-02 20:22:16,143 api_logging_middleware API call: Method=GET, Path=/admin/jsi18n/, User=sandhya@gmail.com, Data=No body
+INFO 2024-08-02 20:22:16,209 api_logging_middleware API response: Status=200, Path=/admin/jsi18n/
+INFO 2024-08-02 20:23:04,504 api_logging_middleware API call: Method=POST, Path=/add_user/, User=Anonymous, Data={"encrypted_content":"erXszY3EXpUTpDYGvh9LQV4T162l7K2eU4LULsxbPh7j+P3jeLiZfZnjHhltm8PPeWxQAFwxsEncz81FW2sNJybMTcTGb2vj/Tav+6QzMTvSFdK4gv9zkzG0IxrSpsdGbwFBm1hfHMEoSr73obbFQIt9H9WJXf19xXD3KAKH4V0="}
+INFO 2024-08-02 20:23:05,636 api_logging_middleware API response: Status=201, Path=/add_user/
+INFO 2024-08-02 20:23:21,301 api_logging_middleware API call: Method=POST, Path=/signin/, User=Anonymous, Data={"encrypted_content":"BPNVS1pyPgD0hCTtut8TsNShGAjflRFBPiKi4gfP7BaEG/81sgt9yzytNbWiwBWoVD89TLvxBSqFlSJrj5OrXg=="}
+INFO 2024-08-02 20:23:22,347 api_logging_middleware API response: Status=400, Path=/signin/
+INFO 2024-08-02 20:23:31,256 api_logging_middleware API call: Method=POST, Path=/signin/, User=Anonymous, Data={"encrypted_content":"BPNVS1pyPgD0hCTtut8TsNShGAjflRFBPiKi4gfP7BaEG/81sgt9yzytNbWiwBWoY5vR5EJSnuZf1SncagObww=="}
+INFO 2024-08-02 20:23:32,297 api_logging_middleware User logged in: User=Abhinav15, Time=2024-08-02 20:23:32
+INFO 2024-08-02 20:23:32,496 api_logging_middleware API response: Status=200, Path=/signin/
+INFO 2024-08-02 20:23:32,670 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 20:23:33,186 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 20:23:33,186 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 20:23:33,319 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 20:23:37,785 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 20:23:37,888 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 20:23:37,888 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 20:23:38,003 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 20:23:38,003 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 20:23:38,105 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 20:23:38,121 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 20:23:38,215 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 20:23:49,986 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 20:23:50,157 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 20:23:50,171 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 20:23:50,290 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 20:23:50,298 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 20:23:50,421 api_logging_middleware API response: Status=500, Path=/profile/
+INFO 2024-08-02 20:23:50,426 api_logging_middleware API call: Method=GET, Path=/profile/, User=Anonymous, Data=No body
+INFO 2024-08-02 20:23:50,519 api_logging_middleware API response: Status=500, Path=/profile/

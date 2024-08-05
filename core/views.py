@@ -14,7 +14,7 @@ from datetime import timedelta
 from .models import PasswordResetRequest, Profile
 from django.core.mail import send_mail, BadHeaderError
 from django.contrib.auth import update_session_auth_hash
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 import json
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
@@ -26,8 +26,9 @@ import json
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 import base64
+from django.contrib.auth.hashers import make_password  # Import the function
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from rest_framework import status
@@ -45,6 +46,10 @@ from django.shortcuts import render
 import fitz  # PyMuPDF
 from docx import Document as DocxDocument
 import logging
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -169,114 +174,94 @@ def decrypt_data(encrypted_data):
 #     except Exception as e:
 #         logger.exception("Unexpected error")
 #         return JsonResponse({'error': str(e)}, status=500)
-    
+
+
+
+
 # @csrf_exempt
 # def add_user(request):
-#     try:
-#         logger.debug("Request received")
-#         # Extract and decrypt the incoming payload
-#         encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
-#         if not encrypted_content:
-#             logger.error("No encrypted content found in the request.")
-#             return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
-        
-#         decrypted_content = decrypt_data(encrypted_content)
-#         data = json.loads(decrypted_content)
-#         logger.debug("Request body: %s", data)
-
-#         first_name = data.get('first_name')
-#         last_name = data.get('last_name')
-#         username = data.get('username')
-#         email = data.get('email')
-#         password = data.get('password')
-#         confirm_password = data.get('confirm_password')
-
-#         if not first_name or not last_name or not username or not email or not password or not confirm_password:
-#             logger.error("Missing field(s)")
-#             return JsonResponse({'error': 'All fields are required.'}, status=400)
-
-#         if password != confirm_password:
-#             logger.error("Passwords do not match")
-#             return JsonResponse({'error': 'Passwords do not match.'}, status=400)
-
+#     if request.method == 'POST':
 #         try:
-#             validate_password(password)
-#             logger.debug("Password validation passed")
-#         except ValidationError as e:
-#             logger.error("Password validation error: %s", e.messages)
-#             return JsonResponse({'error': list(e.messages)}, status=400)
+#             data = json.loads(request.body)
+#             first_name = data.get('first_name')
+#             last_name = data.get('last_name')
+#             username = data.get('username')
+#             email = data.get('email')
+#             password = data.get('password')
+#             confirm_password = data.get('confirm_password')
 
-#         if User.objects.filter(username=username).exists():
-#             logger.error("Username is already taken")
-#             return JsonResponse({'error': 'Username is already taken.'}, status=400)
+#             if password != confirm_password:
+#                 return JsonResponse({'error': 'Passwords do not match.'}, status=400)
 
-#         if User.objects.filter(email=email).exists():
-#             logger.error("Email is already registered")
-#             return JsonResponse({'error': 'Email is already registered.'}, status=400)
+#             if User.objects.filter(username=username).exists():
+#                 return JsonResponse({'error': 'Username already exists.'}, status=400)
 
-#         user = User.objects.create_user(username=username, email=email, password=password, first_name=first_name, last_name=last_name)
-#         logger.debug("User created: %s", user)
+#             if User.objects.filter(email=email).exists():
+#                 return JsonResponse({'error': 'Email already exists.'}, status=400)
 
-#         # Create a profile for the new user
-#         Profile.objects.create(user=user)
+#             # Create user
+#             user = User.objects.create(
+#                 first_name=first_name,
+#                 last_name=last_name,
+#                 username=username,
+#                 email=email,
+#                 password=make_password(password)  # Hash the password
+#             )
+#             user.save()
 
-#         # Encrypt the response content
-#         encrypted_response = encrypt_data({'success': 'User created successfully.'})
+#             return JsonResponse({'message': 'User created successfully'}, status=201)
 
-#         return JsonResponse({'encrypted_content': encrypted_response}, status=201)
-
-#     except json.JSONDecodeError:
-#         logger.error("Invalid JSON format")
-#         return JsonResponse({'error': 'Invalid JSON format.'}, status=400)
-#     except Exception as e:
-#         logger.exception("Unexpected error")
-#         return JsonResponse({'error': str(e)}, status=500)
+#         except json.JSONDecodeError:
+#             return JsonResponse({'error': 'Invalid JSON'}, status=400)
+#         except Exception as e:
+#             return JsonResponse({'error': str(e)}, status=500)
+#     else:
+#         return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 @csrf_exempt
 def add_user(request):
-    try:
-        logger.debug("Request received")
-        data = json.loads(request.body.decode('utf-8'))
-        logger.debug("Request body: %s", data)
-
-        first_name = data.get('first_name')
-        last_name = data.get('last_name')
-        username = data.get('username')
-        email = data.get('email')
-        password = data.get('password')
-        confirm_password = data.get('confirm_password')
-
-        if not first_name or not last_name or not username or not email or not password or not confirm_password:
-            logger.error("Missing field(s)")
-            return JsonResponse({'error': 'All fields are required.'}, status=400)
-
-        if password != confirm_password:
-            logger.error("Passwords do not match")
-            return JsonResponse({'error': 'Passwords do not match.'}, status=400)
-
+    if request.method == 'POST':
         try:
-            validate_password(password)
-            logger.debug("Password validation passed")
-        except ValidationError as e:
-            logger.error("Password validation error: %s", e.messages)
-            return JsonResponse({'error': e.messages[0]}, status=400)
+            data = json.loads(request.body)
+            first_name = data.get('first_name')
+            last_name = data.get('last_name')
+            username = data.get('username')
+            email = data.get('email')
+            password = data.get('password')
+            confirm_password = data.get('confirm_password')
 
-        if User.objects.filter(username=username).exists():
-            logger.error("Username already exists")
-            return JsonResponse({'error': 'Username already exists.'}, status=400)
+            if password != confirm_password:
+                return JsonResponse({'error': 'Passwords do not match.'}, status=400)
 
-        if User.objects.filter(email=email).exists():
-            logger.error("Email already exists")
-            return JsonResponse({'error': 'Email already exists.'}, status=400)
+            if User.objects.filter(username=username).exists():
+                return JsonResponse({'error': 'Username already exists.'}, status=400)
 
-        user = User.objects.create_user(username=username, password=password, email=email, first_name=first_name, last_name=last_name)
-        logger.info("User created successfully: %s", user.username)
-        return JsonResponse({'message': 'User created successfully.'}, status=201)
+            try:
+                validate_email(email)
+            except ValidationError:
+                return JsonResponse({'error': 'Invalid email address.'}, status=400)
 
-    except Exception as e:
-        logger.error("Exception: %s", str(e))
-        return JsonResponse({'error': 'An error occurred.'}, status=500)
+            if User.objects.filter(email=email).exists():
+                return JsonResponse({'error': 'Email already exists.'}, status=400)
 
+            # Create user
+            user = User.objects.create(
+                first_name=first_name,
+                last_name=last_name,
+                username=username,
+                email=email,
+                password=make_password(password)  # Hash the password
+            )
+            user.save()
+
+            return JsonResponse({'message': 'User created successfully'}, status=201)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 def generate_otp():
     return ''.join(random.choices('0123456789', k=6))
@@ -768,27 +753,17 @@ def offer_letter_generator(request):
     logger.warning('Method not allowed.')
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
-@csrf_exempt
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def profile(request):
     user = request.user
-    logger.debug(f"User {user.username} accessed the profile view.")
-    
-    try:
-        profile = Profile.objects.get(user=user)
-    except Profile.DoesNotExist:
-        logger.error(f"Profile for user {user.username} does not exist.")
-        return JsonResponse({'error': 'Profile not found.'}, status=404)
-    
+    profile = Profile.objects.get(user=user)
     errors = []
 
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            logger.debug(f"Received POST data: {data}")
         except json.JSONDecodeError:
-            logger.error("Invalid JSON received.")
             return JsonResponse({'error': 'Invalid JSON.'}, status=400)
 
         # Update user and profile data based on received JSON
@@ -802,26 +777,20 @@ def profile(request):
             parsed_date = parse_date(birth_date)
             if parsed_date:
                 profile.birth_date = parsed_date
-                logger.debug(f"Updated birth date to {parsed_date}")
             else:
                 errors.append("Invalid date format for birth date.")
-                logger.warning("Invalid date format received for birth date.")
                 profile.birth_date = None
 
         if not user.first_name:
             errors.append("First name is required.")
-            logger.warning("First name is missing.")
         if not user.last_name:
             errors.append("Last name is required.")
-            logger.warning("Last name is missing.")
 
         if not errors:
             user.save()
             profile.save()
-            logger.info(f"Profile for user {user.username} updated successfully.")
             return JsonResponse({'message': 'Profile updated successfully.'})
         else:
-            logger.error(f"Errors occurred: {errors}")
             return JsonResponse({'errors': errors}, status=400)
 
     response_data = {
@@ -836,10 +805,7 @@ def profile(request):
         }
     }
 
-    logger.debug(f"Returning response data: {response_data}")
     return JsonResponse(response_data)
-
-
 
 @csrf_exempt
 @api_view(['POST'])
