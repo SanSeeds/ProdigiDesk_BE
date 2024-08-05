@@ -36,7 +36,7 @@ ENCRYPTION_SECRET_KEY = config('ENCRYPTION_SECRET_KEY_b64')
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 
 LOGGING = {
@@ -78,27 +78,27 @@ LOGGING = {
         },
     },
     'root': {
-        'handlers': ['file', 'console'],
+        'handlers': ['file'],
         'level': 'DEBUG',
     },
     'loggers': {
         'django': {
-            'handlers': ['file', 'console'],
+            'handlers': ['file' ],
             'level': 'DEBUG',
             'propagate': True,
         },
         'django.request': {
-            'handlers': ['file', 'console'],
+            'handlers': ['file'],
             'level': 'ERROR',
             'propagate': False,
         },
         'django.security': {
-            'handlers': ['file', 'console'],
+            'handlers': ['file'],
             'level': 'ERROR',
             'propagate': False,
         },
         'django.utils.autoreload': {
-            'handlers': ['file', 'console'],
+            'handlers': ['file'],
             'level': 'INFO',
             'propagate': False,
         },
@@ -110,6 +110,7 @@ LOGGING = {
     },
 }
 
+ALLOWED_HOSTS = []
 
 
 # #AUTH_USER_MODEL = 'core.Profile'
@@ -160,11 +161,11 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',  # Ensure this is included
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'core.api_logging_middleware.APILoggingMiddleware'
+    # 'core.api_logging_middleware.APILoggingMiddleware'
 ]
 
 
