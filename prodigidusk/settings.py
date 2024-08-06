@@ -127,12 +127,14 @@ ALLOWED_HOSTS = ['*']
 
 #AUTH_USER_MODEL = 'core.Profile'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'abhinav150601@gmail.com'
-EMAIL_HOST_PASSWORD = 'wgem yqjr upvf mhhi'
+EMAIL_HOST = 'smtp.secureserver.net'  # GoDaddy SMTP server
+EMAIL_PORT = 465  # Port for SSL
+EMAIL_USE_TLS = False  # Use TLS is false for SSL
+EMAIL_USE_SSL = True  # Use SSL
+EMAIL_HOST_USER = 'info@prodigidesk.ai'  # Replace with your GoDaddy email address
+EMAIL_HOST_PASSWORD = '#rxEFVGh47'  # Replace with your email password
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
 
 # Razorpay
 
