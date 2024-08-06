@@ -24,7 +24,7 @@ urlpatterns = [
     path('send_otp/', views.send_otp, name='send_otp'),
     path('add_user/', views.add_user, name='add_user'),
     # path('add_user/', views.SignUpView.as_view(), name='add_user'),
-
+    path('complete_registration/', views.complete_registration, name='complete_registration'),
     path('create_presentation/', views.create_presentation, name='create_presentation'),
     
     
