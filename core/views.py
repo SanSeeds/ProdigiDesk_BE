@@ -32,7 +32,6 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.renderers import BaseRenderer
 from pptx import Presentation
 from pptx.util import Inches, Pt
@@ -52,7 +51,15 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from datetime import timedelta
 from django.utils import timezone
-
+from dateutil.relativedelta import relativedelta
+from django.core.mail import send_mail
+from django.conf import settings
+from django.utils import timezone
+from datetime import timedelta
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import User, Profile
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -178,6 +185,52 @@ def decrypt_data(encrypted_data):
 #         logger.exception("Unexpected error")
 #         return JsonResponse({'error': str(e)}, status=500)
 
+# @csrf_exempt
+# def add_user(request):
+#     if request.method == 'POST':
+#         try:
+#             data = json.loads(request.body)
+#             first_name = data.get('first_name')
+#             last_name = data.get('last_name')
+#             username = data.get('username')
+#             email = data.get('email')
+#             password = data.get('password')
+#             confirm_password = data.get('confirm_password')
+
+#             if password != confirm_password:
+#                 return JsonResponse({'error': 'Passwords do not match.'}, status=400)
+
+#             if User.objects.filter(username=username).exists():
+#                 return JsonResponse({'error': 'Username already exists.'}, status=400)
+
+#             try:
+#                 validate_email(email)
+#             except ValidationError:
+#                 return JsonResponse({'error': 'Invalid email address.'}, status=400)
+
+#             if User.objects.filter(email=email).exists():
+#                 return JsonResponse({'error': 'Email already exists.'}, status=400)
+
+#             # Create user
+#             user = User.objects.create(
+#                 first_name=first_name,
+#                 last_name=last_name,
+#                 username=username,
+#                 email=email,
+#                 password=make_password(password)  # Hash the password
+#             )
+#             user.save()
+
+#             return JsonResponse({'message': 'User created successfully'}, status=201)
+
+#         except json.JSONDecodeError:
+#             return JsonResponse({'error': 'Invalid JSON'}, status=400)
+#         except Exception as e:
+#             return JsonResponse({'error': str(e)}, status=500)
+#     else:
+#         return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+
 @csrf_exempt
 def add_user(request):
     if request.method == 'POST':
@@ -214,7 +267,7 @@ def add_user(request):
             )
             user.save()
 
-            return JsonResponse({'message': 'User created successfully'}, status=201)
+            return JsonResponse({'message': 'User created successfully', 'user_id': user.id, 'email': email}, status=201)
 
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
@@ -235,10 +288,6 @@ def add_user(request):
 #             email = data.get('email')
 #             password = data.get('password')
 #             confirm_password = data.get('confirm_password')
-#             subscription_duration = data.get('subscription_duration')  
-
-#             if subscription_duration is None:
-#                 return JsonResponse({'error': 'Subscription duration is required.'}, status=400)
 
 #             if password != confirm_password:
 #                 return JsonResponse({'error': 'Passwords do not match.'}, status=400)
@@ -264,20 +313,7 @@ def add_user(request):
 #             )
 #             user.save()
 
-#             # Create or update profile with selected subscription
-#             profile, created = Profile.objects.get_or_create(user=user)
-#             profile.set_subscription(duration_months=int(subscription_duration))
-
-#             # Send welcome email (optional)
-#             send_mail(
-#                 'Welcome to Our Service',
-#                 'Thank you for registering. Your subscription starts now.',
-#                 'from@example.com',
-#                 [email],
-#                 fail_silently=False,
-#             )
-
-#             return JsonResponse({'message': 'User created successfully'}, status=201)
+#             return JsonResponse({'message': 'User created successfully', 'user_id': user.id}, status=201)
 
 #         except json.JSONDecodeError:
 #             return JsonResponse({'error': 'Invalid JSON'}, status=400)
@@ -286,7 +322,108 @@ def add_user(request):
 #     else:
 #         return JsonResponse({'error': 'Invalid request method'}, status=405)
 
-        
+# @csrf_exempt
+# def complete_registration(request):
+#     if request.method == 'POST':
+#         try:
+#             data = json.loads(request.body)
+#             email = data.get('email')
+#             plan = data.get('plan')
+#             accepted_terms = data.get('acceptedTerms')
+
+#             if not accepted_terms:
+#                 return JsonResponse({'error': 'Terms and conditions must be accepted.'}, status=400)
+
+#             user = User.objects.filter(email=email).first()
+#             if not user:
+#                 return JsonResponse({'error': 'User not found.'}, status=404)
+
+#             valid_from = timezone.now().date()
+#             if plan == '1 Month plan':
+#                 valid_till = valid_from + timedelta(days=30)
+#             elif plan == '6 Months plan':
+#                 valid_till = valid_from + timedelta(days=180)
+#             elif plan == '12 Months plan':
+#                 valid_till = valid_from + timedelta(days=365)
+#             else:
+#                 return JsonResponse({'error': 'Invalid plan selected.'}, status=400)
+
+#             Profile.objects.update_or_create(
+#                 user=user,
+#                 defaults={'valid_from': valid_from, 'valid_till': valid_till}
+#             )
+
+#             return JsonResponse({'message': 'Registration and subscription completed successfully.'}, status=200)
+
+#         except json.JSONDecodeError:
+#             return JsonResponse({'error': 'Invalid JSON'}, status=400)
+#         except Exception as e:
+#             return JsonResponse({'error': str(e)}, status=500)
+#     else:
+#         return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+
+
+@csrf_exempt
+def complete_registration(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            plan = data.get('plan')
+            accepted_terms = data.get('acceptedTerms')
+
+            if not accepted_terms:
+                return JsonResponse({'error': 'Terms and conditions must be accepted.'}, status=400)
+
+            user = User.objects.filter(email=email).first()
+            if not user:
+                return JsonResponse({'error': 'User not found.'}, status=404)
+
+            valid_from = timezone.now().date()
+            if plan == '1 Month plan':
+                valid_till = valid_from + timedelta(days=30)
+            elif plan == '6 Months plan':
+                valid_till = valid_from + timedelta(days=180)
+            elif plan == '12 Months plan':
+                valid_till = valid_from + timedelta(days=365)
+            else:
+                return JsonResponse({'error': 'Invalid plan selected.'}, status=400)
+
+            Profile.objects.update_or_create(
+                user=user,
+                defaults={'valid_from': valid_from, 'valid_till': valid_till}
+            )
+
+            # Send subscription confirmation email
+            subject = 'Subscription Confirmation'
+            message = (
+                f'Dear {user.first_name},\n\n'
+                f'Thank you for subscribing to our service.\n\n'
+                f'Your subscription starts on: {valid_from}\n'
+                f'Your subscription ends on: {valid_till}\n\n'
+                f'Best regards,\n'
+                f'Esprit Analytique'
+            )
+            send_mail(
+                subject,
+                message,
+                settings.EMAIL_HOST_USER,  # From email
+                [email],  # Recipient email
+                fail_silently=False
+            )
+
+            return JsonResponse({'message': 'Registration and subscription completed successfully.'}, status=200)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+
+
 def generate_otp():
     return ''.join(random.choices('0123456789', k=6))
 
@@ -447,6 +584,8 @@ def forgot_password(request):
 #         logger.error('Invalid request method')
 #         return JsonResponse({'error': 'Invalid request method'}, status=405)
 
+
+
 @csrf_exempt
 def signin(request):
     if request.method == 'POST':
@@ -502,6 +641,65 @@ def signin(request):
     else:
         logger.error('Invalid request method')
         return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+
+
+@csrf_exempt
+def signin(request):
+    if request.method == 'POST':
+        try:
+            encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
+            if not encrypted_content:
+                logger.warning('No encrypted content found in the request.')
+                return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
+            
+            decrypted_content = decrypt_data(encrypted_content)
+            data = json.loads(decrypted_content)
+            logger.debug(f'Decrypted content: {data}')
+
+            login_input = data.get('login_input')
+            password = data.get('password')
+            
+            if not login_input or not password:
+                logger.warning('Login input and password are required')
+                return JsonResponse({'error': 'Login input and password are required'}, status=400)
+
+            user = None
+            try:
+                if '@' in login_input:
+                    user = User.objects.get(email=login_input)
+                else:
+                    user = User.objects.get(username=login_input)
+            except User.DoesNotExist:
+                logger.warning('Invalid login input or password')
+                return JsonResponse({'error': 'Invalid login input or password'}, status=401)
+
+            user = authenticate(request, username=user.username, password=password)
+            if user is not None:
+                login(request, user)
+                refresh = RefreshToken.for_user(user)
+                logger.info(f'User {user.username} authenticated successfully')
+
+                encrypted_response = encrypt_data({
+                    'success': 'User authenticated',
+                    'access': str(refresh.access_token),
+                    'refresh': str(refresh)
+                })
+
+                return JsonResponse({'encrypted_content': encrypted_response}, status=200)
+            else:
+                logger.warning('Invalid login input or password')
+                return JsonResponse({'error': 'Invalid login input or password'}, status=401)
+        except json.JSONDecodeError:
+            logger.error('Invalid JSON format in request')
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            logger.error(f'Internal server error: {str(e)}')
+            return JsonResponse({'error': 'Internal server error'}, status=500)
+    else:
+        logger.error('Invalid request method')
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
+
 
 
 @csrf_exempt
@@ -886,12 +1084,64 @@ def offer_letter_generator(request):
 
 #     return JsonResponse(response_data)
 
-from django.contrib.auth.models import User
-from django.http import JsonResponse
-from django.utils.dateparse import parse_date
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-import json
+# @api_view(['GET', 'POST'])
+# @permission_classes([IsAuthenticated])
+# def profile(request):
+#     user = request.user
+#     profile = Profile.objects.get(user=user)
+#     errors = []
+    
+#     if request.method == 'POST':
+#         try:
+#             data = json.loads(request.body)
+#         except json.JSONDecodeError:
+#             return JsonResponse({'error': 'Invalid JSON.'}, status=400)
+
+#         # Update user and profile data based on received JSON
+#         user.first_name = data.get('first_name', user.first_name)
+#         user.last_name = data.get('last_name', user.last_name)
+#         user.email = data.get('email', user.email)
+#         profile.bio = data.get('bio', profile.bio)
+#         profile.location = data.get('location', profile.location)
+#         profile.valid_till = data.get('valid_till', profile.valid_till)
+
+#         birth_date = data.get('birth_date')
+#         if birth_date:
+#             parsed_date = parse_date(birth_date)
+#             if parsed_date:
+#                 profile.birth_date = parsed_date
+#             else:
+#                 errors.append("Invalid date format for birth date.")
+#                 profile.birth_date = None
+
+#         if not user.first_name:
+#             errors.append("First name is required.")
+#         if not user.last_name:
+#             errors.append("Last name is required.")
+#         if not user.email:
+#             errors.append("Email is required.")
+
+#         if not errors:
+#             user.save()
+#             profile.save()
+#             return JsonResponse({'message': 'Profile updated successfully.'})
+#         else:
+#             return JsonResponse({'errors': errors}, status=400)
+
+#     response_data = {
+#         'user': {
+#             'first_name': user.first_name,
+#             'last_name': user.last_name,
+#             'email': user.email
+#         },
+#         'profile': {
+#             'bio': profile.bio,
+#             'location': profile.location,
+#             'birth_date': profile.birth_date.isoformat() if profile.birth_date else None
+#         }
+#     }
+
+#     return JsonResponse(response_data)
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
@@ -899,7 +1149,7 @@ def profile(request):
     user = request.user
     profile = Profile.objects.get(user=user)
     errors = []
-    
+
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -912,6 +1162,7 @@ def profile(request):
         user.email = data.get('email', user.email)
         profile.bio = data.get('bio', profile.bio)
         profile.location = data.get('location', profile.location)
+        profile.valid_till = data.get('valid_till', profile.valid_till)
 
         birth_date = data.get('birth_date')
         if birth_date:
@@ -945,7 +1196,8 @@ def profile(request):
         'profile': {
             'bio': profile.bio,
             'location': profile.location,
-            'birth_date': profile.birth_date.isoformat() if profile.birth_date else None
+            'birth_date': profile.birth_date.isoformat() if profile.birth_date else None,
+            'valid_till': profile.valid_till.isoformat() if profile.valid_till else None
         }
     }
 
