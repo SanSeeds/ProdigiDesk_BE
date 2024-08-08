@@ -110,7 +110,7 @@ LOGGING = {
     },
 }
 
-ALLOWED_HOSTS = []
+# ALLOWED_HOSTS = []
 
 
 # #AUTH_USER_MODEL = 'core.Profile'
@@ -127,12 +127,12 @@ ALLOWED_HOSTS = ['*']
 
 #AUTH_USER_MODEL = 'core.Profile'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtpout.secureserver.net'  # GoDaddy SMTP server
-EMAIL_PORT = 465  # Port for SSL
-EMAIL_USE_TLS = False  # Use TLS is false for SSL
-EMAIL_USE_SSL = True  # Use SSL
-EMAIL_HOST_USER = 'info@prodigidesk.ai'  # Replace with your GoDaddy email address
-EMAIL_HOST_PASSWORD = '#rxEFVGh47'  # Replace with your email password
+EMAIL_HOST = 'smtpout.secureserver.net' 
+EMAIL_PORT = 465  
+EMAIL_USE_TLS = False  
+EMAIL_USE_SSL = True  
+EMAIL_HOST_USER = 'info@prodigidesk.ai'  
+EMAIL_HOST_PASSWORD = '#rxEFVGh47'  
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 
@@ -227,7 +227,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=2),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=240),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=15),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,

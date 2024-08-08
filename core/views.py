@@ -276,12 +276,18 @@ def add_user(request):
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=405)
 
-
+#Encrypted API
 # @csrf_exempt
 # def add_user(request):
 #     if request.method == 'POST':
 #         try:
-#             data = json.loads(request.body)
+#             encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
+#             if not encrypted_content:
+#                 return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
+
+#             decrypted_content = decrypt_data(encrypted_content)
+#             data = json.loads(decrypted_content)
+
 #             first_name = data.get('first_name')
 #             last_name = data.get('last_name')
 #             username = data.get('username')
@@ -313,7 +319,14 @@ def add_user(request):
 #             )
 #             user.save()
 
-#             return JsonResponse({'message': 'User created successfully', 'user_id': user.id}, status=201)
+#             response_data = {
+#                 'message': 'User created successfully',
+#                 'user_id': user.id,
+#                 'email': email
+#             }
+#             encrypted_response = encrypt_data(response_data)
+
+#             return JsonResponse({'encrypted_content': encrypted_response}, status=201)
 
 #         except json.JSONDecodeError:
 #             return JsonResponse({'error': 'Invalid JSON'}, status=400)
@@ -321,48 +334,7 @@ def add_user(request):
 #             return JsonResponse({'error': str(e)}, status=500)
 #     else:
 #         return JsonResponse({'error': 'Invalid request method'}, status=405)
-
-# @csrf_exempt
-# def complete_registration(request):
-#     if request.method == 'POST':
-#         try:
-#             data = json.loads(request.body)
-#             email = data.get('email')
-#             plan = data.get('plan')
-#             accepted_terms = data.get('acceptedTerms')
-
-#             if not accepted_terms:
-#                 return JsonResponse({'error': 'Terms and conditions must be accepted.'}, status=400)
-
-#             user = User.objects.filter(email=email).first()
-#             if not user:
-#                 return JsonResponse({'error': 'User not found.'}, status=404)
-
-#             valid_from = timezone.now().date()
-#             if plan == '1 Month plan':
-#                 valid_till = valid_from + timedelta(days=30)
-#             elif plan == '6 Months plan':
-#                 valid_till = valid_from + timedelta(days=180)
-#             elif plan == '12 Months plan':
-#                 valid_till = valid_from + timedelta(days=365)
-#             else:
-#                 return JsonResponse({'error': 'Invalid plan selected.'}, status=400)
-
-#             Profile.objects.update_or_create(
-#                 user=user,
-#                 defaults={'valid_from': valid_from, 'valid_till': valid_till}
-#             )
-
-#             return JsonResponse({'message': 'Registration and subscription completed successfully.'}, status=200)
-
-#         except json.JSONDecodeError:
-#             return JsonResponse({'error': 'Invalid JSON'}, status=400)
-#         except Exception as e:
-#             return JsonResponse({'error': str(e)}, status=500)
-#     else:
-#         return JsonResponse({'error': 'Invalid request method'}, status=405)
-
-
+    
 
 @csrf_exempt
 def complete_registration(request):
@@ -422,6 +394,78 @@ def complete_registration(request):
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=405)
 
+#Encrypted API
+# @csrf_exempt
+# def complete_registration(request):
+#     if request.method == 'POST':
+#         try:
+#             # Decrypting the request payload
+#             encrypted_payload = json.loads(request.body.decode('utf-8')).get('encrypted_content')
+#             if not encrypted_payload:
+#                 logger.warning('No encrypted content found in the request.')
+#                 return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
+            
+#             decrypted_payload = decrypt_data(encrypted_payload)
+#             data = json.loads(decrypted_payload)
+            
+#             email = data.get('email')
+#             plan = data.get('plan')
+#             accepted_terms = data.get('acceptedTerms')
+
+#             if not accepted_terms:
+#                 return JsonResponse({'error': 'Terms and conditions must be accepted.'}, status=400)
+
+#             user = User.objects.filter(email=email).first()
+#             if not user:
+#                 return JsonResponse({'error': 'User not found.'}, status=404)
+
+#             valid_from = timezone.now().date()
+#             if plan == '1 Month plan':
+#                 valid_till = valid_from + timedelta(days=30)
+#             elif plan == '6 Months plan':
+#                 valid_till = valid_from + timedelta(days=180)
+#             elif plan == '12 Months plan':
+#                 valid_till = valid_from + timedelta(days=365)
+#             else:
+#                 return JsonResponse({'error': 'Invalid plan selected.'}, status=400)
+
+#             Profile.objects.update_or_create(
+#                 user=user,
+#                 defaults={'valid_from': valid_from, 'valid_till': valid_till}
+#             )
+
+#             # Send subscription confirmation email
+#             subject = 'Subscription Confirmation'
+#             message = (
+#                 f'Dear {user.first_name},\n\n'
+#                 f'Thank you for subscribing to our service.\n\n'
+#                 f'Your subscription starts on: {valid_from}\n'
+#                 f'Your subscription ends on: {valid_till}\n\n'
+#                 f'Best regards,\n'
+#                 f'Esprit Analytique'
+#             )
+#             send_mail(
+#                 subject,
+#                 message,
+#                 settings.EMAIL_HOST_USER,  # From email
+#                 [email],  # Recipient email
+#                 fail_silently=False
+#             )
+
+#             # Encrypting the response payload
+#             response_data = {'message': 'Registration and subscription completed successfully.'}
+#             encrypted_response = encrypt_data(response_data)
+
+#             return JsonResponse({'encrypted_content': encrypted_response}, status=200)
+
+#         except json.JSONDecodeError:
+#             logger.error('Invalid JSON format received.')
+#             return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
+#         except Exception as e:
+#             logger.error(f'Exception: {str(e)}')
+#             return JsonResponse({'error': str(e)}, status=500)
+#     else:
+#         return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 
 def generate_otp():
@@ -534,7 +578,6 @@ def forgot_password(request):
 # def signin(request):
 #     if request.method == 'POST':
 #         try:
-#             # Extract and decrypt the incoming payload
 #             encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
 #             if not encrypted_content:
 #                 logger.warning('No encrypted content found in the request.')
@@ -544,18 +587,22 @@ def forgot_password(request):
 #             data = json.loads(decrypted_content)
 #             logger.debug(f'Decrypted content: {data}')
 
-#             email = data.get('email')
+#             login_input = data.get('login_input')
 #             password = data.get('password')
             
-#             if not email or not password:
-#                 logger.warning('Email and password are required')
-#                 return JsonResponse({'error': 'Email and password are required'}, status=400)
+#             if not login_input or not password:
+#                 logger.warning('Login input and password are required')
+#                 return JsonResponse({'error': 'Login input and password are required'}, status=400)
 
+#             user = None
 #             try:
-#                 user = User.objects.get(email=email)
+#                 if '@' in login_input:
+#                     user = User.objects.get(email=login_input)
+#                 else:
+#                     user = User.objects.get(username=login_input)
 #             except User.DoesNotExist:
-#                 logger.warning('Invalid email or password')
-#                 return JsonResponse({'error': 'Invalid email or password'}, status=400)
+#                 logger.warning('Invalid login input or password')
+#                 return JsonResponse({'error': 'Invalid login input or password'}, status=400)
 
 #             user = authenticate(request, username=user.username, password=password)
 #             if user is not None:
@@ -563,7 +610,6 @@ def forgot_password(request):
 #                 refresh = RefreshToken.for_user(user)
 #                 logger.info(f'User {user.username} authenticated successfully')
 
-#                 # Encrypt the response content
 #                 encrypted_response = encrypt_data({
 #                     'success': 'User authenticated',
 #                     'access': str(refresh.access_token),
@@ -572,8 +618,8 @@ def forgot_password(request):
 
 #                 return JsonResponse({'encrypted_content': encrypted_response}, status=200)
 #             else:
-#                 logger.warning('Invalid email or password')
-#                 return JsonResponse({'error': 'Invalid email or password'}, status=400)
+#                 logger.warning('Invalid login input or password')
+#                 return JsonResponse({'error': 'Invalid login input or password'}, status=400)
 #         except json.JSONDecodeError:
 #             logger.error('Invalid JSON format in request')
 #             return JsonResponse({'error': 'Invalid JSON'}, status=400)
@@ -586,6 +632,63 @@ def forgot_password(request):
 
 
 
+# @csrf_exempt
+# def signin(request):
+#     if request.method == 'POST':
+#         try:
+#             encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
+#             if not encrypted_content:
+#                 logger.warning('No encrypted content found in the request.')
+#                 return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
+            
+#             decrypted_content = decrypt_data(encrypted_content)
+#             data = json.loads(decrypted_content)
+#             logger.debug(f'Decrypted content: {data}')
+
+#             login_input = data.get('login_input')
+#             password = data.get('password')
+            
+#             if not login_input or not password:
+#                 logger.warning('Login input and password are required')
+#                 return JsonResponse({'error': 'Login input and password are required'}, status=400)
+
+#             user = None
+#             try:
+#                 if '@' in login_input:
+#                     user = User.objects.get(email=login_input)
+#                 else:
+#                     user = User.objects.get(username=login_input)
+#             except User.DoesNotExist:
+#                 logger.warning('Invalid login input or password')
+#                 return JsonResponse({'error': 'Invalid login input or password'}, status=401)
+
+#             user = authenticate(request, username=user.username, password=password)
+#             if user is not None:
+#                 login(request, user)
+#                 refresh = RefreshToken.for_user(user)
+#                 logger.info(f'User {user.username} authenticated successfully')
+
+#                 encrypted_response = encrypt_data({
+#                     'success': 'User authenticated',
+#                     'access': str(refresh.access_token),
+#                     'refresh': str(refresh)
+#                 })
+
+#                 return JsonResponse({'encrypted_content': encrypted_response}, status=200)
+#             else:
+#                 logger.warning('Invalid login input or password')
+#                 return JsonResponse({'error': 'Invalid login input or password'}, status=401)
+#         except json.JSONDecodeError:
+#             logger.error('Invalid JSON format in request')
+#             return JsonResponse({'error': 'Invalid JSON'}, status=400)
+#         except Exception as e:
+#             logger.error(f'Internal server error: {str(e)}')
+#             return JsonResponse({'error': 'Internal server error'}, status=500)
+#     else:
+#         logger.error('Invalid request method')
+#         return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+
 @csrf_exempt
 def signin(request):
     if request.method == 'POST':
@@ -606,15 +709,14 @@ def signin(request):
                 logger.warning('Login input and password are required')
                 return JsonResponse({'error': 'Login input and password are required'}, status=400)
 
-            user = None
             try:
                 if '@' in login_input:
                     user = User.objects.get(email=login_input)
                 else:
                     user = User.objects.get(username=login_input)
             except User.DoesNotExist:
-                logger.warning('Invalid login input or password')
-                return JsonResponse({'error': 'Invalid login input or password'}, status=400)
+                logger.warning('Username or email not found')
+                return JsonResponse({'error': 'Username or email not found'}, status=401)
 
             user = authenticate(request, username=user.username, password=password)
             if user is not None:
@@ -630,8 +732,8 @@ def signin(request):
 
                 return JsonResponse({'encrypted_content': encrypted_response}, status=200)
             else:
-                logger.warning('Invalid login input or password')
-                return JsonResponse({'error': 'Invalid login input or password'}, status=400)
+                logger.warning('Password not correct')
+                return JsonResponse({'error': 'Password not correct'}, status=401)
         except json.JSONDecodeError:
             logger.error('Invalid JSON format in request')
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
@@ -641,65 +743,6 @@ def signin(request):
     else:
         logger.error('Invalid request method')
         return JsonResponse({'error': 'Invalid request method'}, status=405)
-
-
-
-@csrf_exempt
-def signin(request):
-    if request.method == 'POST':
-        try:
-            encrypted_content = json.loads(request.body.decode('utf-8')).get('encrypted_content')
-            if not encrypted_content:
-                logger.warning('No encrypted content found in the request.')
-                return JsonResponse({'error': 'No encrypted content found in the request.'}, status=400)
-            
-            decrypted_content = decrypt_data(encrypted_content)
-            data = json.loads(decrypted_content)
-            logger.debug(f'Decrypted content: {data}')
-
-            login_input = data.get('login_input')
-            password = data.get('password')
-            
-            if not login_input or not password:
-                logger.warning('Login input and password are required')
-                return JsonResponse({'error': 'Login input and password are required'}, status=400)
-
-            user = None
-            try:
-                if '@' in login_input:
-                    user = User.objects.get(email=login_input)
-                else:
-                    user = User.objects.get(username=login_input)
-            except User.DoesNotExist:
-                logger.warning('Invalid login input or password')
-                return JsonResponse({'error': 'Invalid login input or password'}, status=401)
-
-            user = authenticate(request, username=user.username, password=password)
-            if user is not None:
-                login(request, user)
-                refresh = RefreshToken.for_user(user)
-                logger.info(f'User {user.username} authenticated successfully')
-
-                encrypted_response = encrypt_data({
-                    'success': 'User authenticated',
-                    'access': str(refresh.access_token),
-                    'refresh': str(refresh)
-                })
-
-                return JsonResponse({'encrypted_content': encrypted_response}, status=200)
-            else:
-                logger.warning('Invalid login input or password')
-                return JsonResponse({'error': 'Invalid login input or password'}, status=401)
-        except json.JSONDecodeError:
-            logger.error('Invalid JSON format in request')
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
-        except Exception as e:
-            logger.error(f'Internal server error: {str(e)}')
-            return JsonResponse({'error': 'Internal server error'}, status=500)
-    else:
-        logger.error('Invalid request method')
-        return JsonResponse({'error': 'Invalid request method'}, status=405)
-
 
 
 @csrf_exempt
@@ -1031,117 +1074,6 @@ def offer_letter_generator(request):
     logger.warning('Method not allowed.')
     return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
-# @api_view(['GET', 'POST'])
-# @permission_classes([IsAuthenticated])
-# def profile(request):
-#     user = request.user
-#     profile = Profile.objects.get(user=user)
-#     errors = []
-#     if request.method == 'POST':
-#         try:
-#             data = json.loads(request.body)
-#         except json.JSONDecodeError:
-#             return JsonResponse({'error': 'Invalid JSON.'}, status=400)
-
-#         # Update user and profile data based on received JSON
-#         user.first_name = data.get('first_name', user.first_name)
-#         user.last_name = data.get('last_name', user.last_name)
-#         profile.bio = data.get('bio', profile.bio)
-#         profile.location = data.get('location', profile.location)
-
-#         birth_date = data.get('birth_date')
-#         if birth_date:
-#             parsed_date = parse_date(birth_date)
-#             if parsed_date:
-#                 profile.birth_date = parsed_date
-#             else:
-#                 errors.append("Invalid date format for birth date.")
-#                 profile.birth_date = None
-
-#         if not user.first_name:
-#             errors.append("First name is required.")
-#         if not user.last_name:
-#             errors.append("Last name is required.")
-
-#         if not errors:
-#             user.save()
-#             profile.save()
-#             return JsonResponse({'message': 'Profile updated successfully.'})
-#         else:
-#             return JsonResponse({'errors': errors}, status=400)
-
-#     response_data = {
-#         'user': {
-#             'first_name': user.first_name,
-#             'last_name': user.last_name,
-#         },
-#         'profile': {
-#             'bio': profile.bio,
-#             'location': profile.location,
-#             'birth_date': profile.birth_date.isoformat() if profile.birth_date else None
-#         }
-#     }
-
-#     return JsonResponse(response_data)
-
-# @api_view(['GET', 'POST'])
-# @permission_classes([IsAuthenticated])
-# def profile(request):
-#     user = request.user
-#     profile = Profile.objects.get(user=user)
-#     errors = []
-    
-#     if request.method == 'POST':
-#         try:
-#             data = json.loads(request.body)
-#         except json.JSONDecodeError:
-#             return JsonResponse({'error': 'Invalid JSON.'}, status=400)
-
-#         # Update user and profile data based on received JSON
-#         user.first_name = data.get('first_name', user.first_name)
-#         user.last_name = data.get('last_name', user.last_name)
-#         user.email = data.get('email', user.email)
-#         profile.bio = data.get('bio', profile.bio)
-#         profile.location = data.get('location', profile.location)
-#         profile.valid_till = data.get('valid_till', profile.valid_till)
-
-#         birth_date = data.get('birth_date')
-#         if birth_date:
-#             parsed_date = parse_date(birth_date)
-#             if parsed_date:
-#                 profile.birth_date = parsed_date
-#             else:
-#                 errors.append("Invalid date format for birth date.")
-#                 profile.birth_date = None
-
-#         if not user.first_name:
-#             errors.append("First name is required.")
-#         if not user.last_name:
-#             errors.append("Last name is required.")
-#         if not user.email:
-#             errors.append("Email is required.")
-
-#         if not errors:
-#             user.save()
-#             profile.save()
-#             return JsonResponse({'message': 'Profile updated successfully.'})
-#         else:
-#             return JsonResponse({'errors': errors}, status=400)
-
-#     response_data = {
-#         'user': {
-#             'first_name': user.first_name,
-#             'last_name': user.last_name,
-#             'email': user.email
-#         },
-#         'profile': {
-#             'bio': profile.bio,
-#             'location': profile.location,
-#             'birth_date': profile.birth_date.isoformat() if profile.birth_date else None
-#         }
-#     }
-
-#     return JsonResponse(response_data)
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
@@ -1471,83 +1403,6 @@ def logout_view(request):
         logger.error(f"Error during logout: {str(e)}")
         return JsonResponse({'error': 'An error occurred during logout.'}, status=500)
 
-# @csrf_exempt
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# def create_presentation(request):
-#     try:
-#         # Load and parse the JSON data
-#         data = json.loads(request.POST.get('data'))
-#         logger.debug(f"Data received: {data}")
-
-#         title = data.get('title')
-#         num_slides = data.get('num_slides')
-#         special_instructions = data.get('special_instructions')
-        
-#         # Process background image file
-#         bg_image_file = request.FILES.get('bg_image', None)
-#         if bg_image_file:
-#             bg_image_path = default_storage.save(bg_image_file.name, bg_image_file)
-#             bg_image = default_storage.path(bg_image_path)
-#             logger.debug(f"Background image saved at: {bg_image}")
-#         else:
-#             bg_image = None
-
-#         # Process document file
-#         document_file = request.FILES.get('document', None)
-#         if document_file:
-#             document_path = default_storage.save(document_file.name, document_file)
-#             document_content = extract_document_content(default_storage.path(document_path))
-#             logger.debug("Document content extracted.")
-#         else:
-#             document_content = None
-
-#         # Generate presentation
-#         logger.info("Generating presentation...")
-#         prs = Presentation()
-#         slide_titles = generate_slide_titles(title, num_slides, special_instructions)
-#         slide_titles = slide_titles.replace('[', '').replace(']', '').replace('"', '').split(',')
-
-#         max_points_per_slide = 4
-
-#         for st in slide_titles:
-#             slide_content = generate_slide_content(st, title, special_instructions, document_content).replace("*", '').split('\n')
-#             current_content = []
-#             slide_count = 1
-
-#             for point in slide_content:
-#                 current_content.append(point.strip())
-#                 if len(current_content) >= max_points_per_slide:
-#                     add_slide(prs, st if slide_count == 1 else f"{st} (contd.)", current_content, bg_image)
-#                     current_content = []
-#                     slide_count += 1
-
-#             if current_content:
-#                 add_slide(prs, st if slide_count == 1 else f"{st} (contd.)", current_content, bg_image)
-
-#         # Save presentation to buffer and prepare response
-#         pptx_buffer = BytesIO()
-#         prs.save(pptx_buffer)
-#         pptx_buffer.seek(0)
-
-#         response = HttpResponse(pptx_buffer, content_type='application/vnd.openxmlformats-officedocument.presentationml.presentation')
-#         response['Content-Disposition'] = 'attachment; filename="SmartOffice_Assistant_Presentation.pptx"'
-
-#         logger.info("Presentation generated and response prepared.")
-#         return response
-
-#     except json.JSONDecodeError:
-#         logger.error("Invalid JSON format received.")
-#         return JsonResponse({'error': 'Invalid JSON format. Please provide valid JSON data.'}, status=400)
-#     except ValueError as e:
-#         logger.error(f"ValueError occurred: {str(e)}")
-#         return JsonResponse({'error': str(e)}, status=400)
-#     except Exception as e:
-#         logger.error(f"An unexpected error occurred: {str(e)}")
-#         return JsonResponse({'error': str(e)}, status=500)
-
-#     logger.error("Method not allowed.")
-#     return JsonResponse({'error': 'Method not allowed.'}, status=405)
 
 
 @csrf_exempt

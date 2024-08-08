@@ -101,7 +101,7 @@ def generate_email(purpose, num_words, subject, rephrase, to, tone, keywords, co
     client = Groq(api_key=GROQ_SECRET_ACCESS_KEY)
     chat_completion = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
-        model="llama-3.1-70b-versatile",
+        model="llama3-70b-8192",
     )
     
     return chat_completion.choices[0].message.content
@@ -146,7 +146,8 @@ def generate_bus_pro(business_intro, proposal_objective, num_words, scope_of_wor
     client = Groq(api_key=GROQ_SECRET_ACCESS_KEY)
     chat_completion = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
-        model="llama-3.1-70b-versatile",
+        model="llama3-70b-8192",
+
     )
 
     return chat_completion.choices[0].message.content
@@ -217,7 +218,8 @@ def generate_offer_letter(company_details, candidate_name, position_title, depar
                 "content": prompt,
             }
         ],
-        model="llama-3.1-70b-versatile",
+        model="llama3-70b-8192",
+
     )
 
     return chat_completion.choices[0].message.content
@@ -290,7 +292,8 @@ def generate_summary(document_context, main_subject, summary_purpose, length_det
                 "content": prompt,
             }
         ],
-        model="llama-3.1-70b-versatile",
+        model="llama3-70b-8192",
+
 
     )
 
@@ -372,7 +375,8 @@ def generate_content(company_info, content_purpose, desired_action, topic_detail
                 "content": prompt,
             }
         ],
-        model="llama-3.1-70b-versatile",
+        model="llama3-70b-8192",
+
     )
 
     return chat_completion.choices[0].message.content
@@ -431,7 +435,8 @@ def generate_sales_script(company_details, num_words, product_descriptions, feat
                 "content": prompt,
             }
         ],
-        model="llama-3.1-70b-versatile",
+        model="llama3-70b-8192",
+
     )
 
     return chat_completion.choices[0].message.content
@@ -537,7 +542,8 @@ def generate_slide_content(st, title, special_instructions, document_content=Non
     client = Groq(api_key=GROQ_SECRET_ACCESS_KEY)
     chat_completion = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
-        model="llama-3.1-70b-versatile",
+        model="llama3-70b-8192",
+
 
     )
     slide_content = chat_completion.choices[0].message.content
@@ -554,7 +560,8 @@ def generate_slide_titles(title, num_slides, special_instructions):
     client = Groq(api_key=GROQ_SECRET_ACCESS_KEY)
     chat_completion = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
-        model="llama-3.1-70b-versatile",
+        model="llama3-70b-8192",
+
     )
     title_list = chat_completion.choices[0].message.content
     return title_list
